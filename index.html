@@ -276,6 +276,40 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    class ErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = { hasError: false, errorMsg: "" };
+      }
+      static getDerivedStateFromError(error) {
+        return { hasError: true, errorMsg: String(error && error.message ? error.message : error) };
+      }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="container">
+              <div className="card">
+                <div className="banner">RECUPERAÇÃO DO SISTEMA</div>
+                <p style={{ marginTop: 12 }}>
+                  Ocorreu um erro ao carregar a tela ({this.state.errorMsg}). Clique abaixo para restaurar os dados locais e recarregar.
+                </p>
+                <button
+                  className="btn-reset"
+                  onClick={() => {
+                    try { localStorage.removeItem("rms_obras_itens_v1"); } catch (e) {}
+                    window.location.reload();
+                  }}
+                >
+                  Restaurar e Recarregar
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children;
+      }
+    }
+
     const DADOS_INICIAIS = [
       { id: 1, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-10", setor: "ENESA", obra: "124", status: "SEPARAÇÃO NA BAIA", rms: "119370", idProduto: "11909" },
       { id: 2, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "MOUSER", data: "2026-11-17", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11795" },
@@ -284,6 +318,17 @@
       { id: 5, patrimonio: "02569-1170", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
       { id: 6, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 10, descricao: "MOUSER", data: "2026-11-23", setor: "ENESA", obra: "129", status: "SEPARAÇÃO NA BAIA", rms: "120012", idProduto: "11795" }
     ];
+
+    function carregarItensSeguros() {
+      try {
+        const salvo = localStorage.getItem("rms_obras_itens_v1");
+        if (!salvo) return DADOS_INICIAIS;
+        const parsed = JSON.parse(salvo);
+        return Array.isArray(parsed) && parsed.length > 0 ? parsed : DADOS_INICIAIS;
+      } catch (e) {
+        return DADOS_INICIAIS;
+      }
+    }
 
     function formatarDataBR(isoDate) {
       if (!isoDate) return "";
@@ -328,34 +373,35 @@
       return !lower.includes("não relacionado") && !lower.includes("nao relacionado") && !lower.includes("não informado") && !lower.includes("nao informado");
     }
 
-    // Extrai PAT e RM do texto do QR Code (e aceita ID caso venha de QR antigo)
+    // Extrai PAT e RM do texto do QR Code
     function parsearDadosQR(textoBruto) {
       const raw = String(textoBruto || "").trim();
-      if (!raw) return { pat: "", rm: "", idProd: "", termoFiltro: "" };
+      if (!raw) return { pat: "", rm: "", termoFiltro: "" };
 
       const patMatch = raw.match(/PAT\s*:\s*([^|]+)/i);
       const rmMatch = raw.match(/RM\s*:\s*([^|]+)/i);
-      const idMatch = raw.match(/ID\s*:\s*([^|]+)/i);
 
       const pat = patMatch ? patMatch[1].trim() : "";
       const rm = rmMatch ? rmMatch[1].trim() : "";
-      const idProd = idMatch ? idMatch[1].trim() : "";
 
       const patLimpo = temPatrimonioValido(pat) ? pat : "";
-      const termoFiltro = patLimpo || rm || idProd || raw;
+      const termoFiltro = patLimpo || rm || raw;
 
-      return { pat: patLimpo, rm, idProd, termoFiltro };
+      return { pat: patLimpo, rm, termoFiltro };
     }
 
     function App() {
       const [aba, setAba] = useState("Etiqueta");
-      const [itens, setItens] = useState(() => {
-        const salvo = localStorage.getItem("rms_obras_itens_v1");
-        return salvo ? JSON.parse(salvo) : DADOS_INICIAIS;
-      });
+      const [itens, setItens] = useState(() => carregarItensSeguros());
       const [pesquisa, setPesquisa] = useState("");
-      const [linhaSelecionadaId, setLinhaSelecionadaId] = useState(4);
-      const [eqpSelecionado, setEqpSelecionado] = useState(4);
+      const [linhaSelecionadaId, setLinhaSelecionadaId] = useState(() => {
+        const iniciais = carregarItensSeguros();
+        return iniciais.some((r) => String(r.id) === "4") ? 4 : (iniciais[0] ? iniciais[0].id : "");
+      });
+      const [eqpSelecionado, setEqpSelecionado] = useState(() => {
+        const iniciais = carregarItensSeguros();
+        return iniciais.some((r) => String(r.id) === "4") ? 4 : (iniciais[0] ? iniciais[0].id : "");
+      });
       const [codBarrasInput, setCodBarrasInput] = useState("");
       const [aviso, setAviso] = useState("");
       const [statusLeitura, setStatusLeitura] = useState("");
@@ -368,18 +414,23 @@
       const scannerInstanceRef = useRef(null);
 
       useEffect(() => {
-        localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itens));
+        try {
+          localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itens));
+        } catch (e) {}
       }, [itens]);
 
       function aplicarBuscaESelecao(dadosQR, listaItens) {
-        const { pat, rm, idProd, termoFiltro } = dadosQR;
-        const busca = termoFiltro || pat || rm || idProd;
+        const { pat, rm, termoFiltro } = dadosQR;
+        const busca = String(termoFiltro || pat || rm || "").trim();
         setPesquisa(busca);
 
         const encontrado = listaItens.find((r) => {
           if (pat && String(r.patrimonio || "").trim().toLowerCase() === pat.toLowerCase()) return true;
           if (rm && String(r.rms || "").trim().toLowerCase() === rm.toLowerCase()) return true;
-          if (idProd && String(r.idProduto || "").trim().toLowerCase() === idProd.toLowerCase()) return true;
+          if (busca && (
+            String(r.patrimonio || "").trim().toLowerCase().includes(busca.toLowerCase()) ||
+            String(r.rms || "").trim().toLowerCase().includes(busca.toLowerCase())
+          )) return true;
           return false;
         });
 
@@ -391,7 +442,7 @@
             `Selecionado: EQP ${encontrado.id} — ${encontrado.descricao || "Item"} (PAT: ${encontrado.patrimonio || "-"} | RM: ${encontrado.rms || "-"})`
           );
         } else {
-          setAviso(`Filtro aplicado com "${busca}", mas nenhum item exato foi encontrado na lista atual.`);
+          setAviso(`Pesquisa aplicada com "${busca}", mas nenhum item foi encontrado na lista atual.`);
           setStatusLeitura("");
         }
       }
@@ -494,7 +545,7 @@
 
         if (qrRef.current) {
           qrRef.current.innerHTML = "";
-          if (itemAtual) {
+          if (itemAtual && typeof QRCode !== "undefined") {
             const patTexto = patValido ? String(itemAtual.patrimonio).trim() : "Não Relacionado";
             const rmTexto = String(itemAtual.rms || "").trim();
             const textoQR = `PAT: ${patTexto} | RM: ${rmTexto}`;
@@ -860,7 +911,7 @@
                   <button
                     className="btn-reset"
                     onClick={() => {
-                      localStorage.removeItem("rms_obras_itens_v1");
+                      try { localStorage.removeItem("rms_obras_itens_v1"); } catch (e) {}
                       setItens(DADOS_INICIAIS);
                       setPesquisa("");
                       setStatusLeitura("");
@@ -1087,7 +1138,11 @@
       );
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    ReactDOM.createRoot(document.getElementById("root")).render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    );
   </script>
 </body>
 </html>
