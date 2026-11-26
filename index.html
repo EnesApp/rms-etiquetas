@@ -425,15 +425,15 @@
       return `STATUS: ${limpo}`;
     }
 
-    // Converte um item de Inventário TI para o formato unificado da etiqueta
+    // Converte um item de Inventário TI para o formato unificado da etiqueta (EQP no header)
     function itemInventarioParaEtiqueta(row) {
       return {
         id: row.id,
         origem: "INVENTARIO_TI",
-        tituloTopo: `LOCAL: ${row.localEqp || "TI"}`,
+        tituloTopo: `EQP: ${row.id}`,
         patrimonio: row.patrimonio || "Não Relacionado",
         linhaResumo: `${row.tipo || "EQP"}: ${row.modelo || ""} (${row.processador || ""} | ${row.ram || ""} | ${row.armazenamento || ""})`,
-        linhaDetalhe: `EQP: ${row.id} | DATA: ${formatarDataBR(row.data)}`,
+        linhaDetalhe: `LOCAL: ${row.localEqp || "TI"} | DATA: ${formatarDataBR(row.data)}`,
         status: formatarStatusEtiqueta(row.status),
         qrTexto: `PAT: ${temPatrimonioValido(row.patrimonio) ? String(row.patrimonio).trim() : "Não Relacionado"} | EQP: ${row.id}`
       };
