@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inventário TI & RMS OBRAS</title>
-  <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode via CDN -->
+  <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode + Supabase via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,6 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; background: #eef2f6; color: #111; }
@@ -24,6 +25,11 @@
       padding: 7px 14px; border-radius: 5px; cursor: pointer; font-weight: bold;
     }
     .topbar button.active { background: #fff; color: #1f497d; }
+    .db-status {
+      margin-left: auto; font-size: 12px; padding: 5px 10px; border-radius: 999px;
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
+      font-weight: bold;
+    }
     .container { max-width: 1360px; margin: 16px auto; padding: 0 12px; }
     .card {
       background: #fff; border-radius: 8px; padding: 14px;
@@ -74,6 +80,21 @@
     }
     .status-baia { background: #76933c !important; color: #fff; font-weight: bold; }
     .status-semlista { background: #c0504d !important; color: #fff; font-weight: bold; }
+
+    /* Modal Supabase */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+      display: flex; align-items: center; justify-content: center; padding: 14px; z-index: 999;
+    }
+    .modal-card {
+      background: #fff; border-radius: 8px; padding: 18px; width: 100%; max-width: 520px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+    }
+    .modal-field { margin-bottom: 12px; }
+    .modal-field label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #334155; }
+    .modal-field input {
+      width: 100%; padding: 8px 10px; border: 1px solid #94a3b8; border-radius: 5px; font-size: 13px;
+    }
 
     /* Scanner QR Code */
     .scanner-box {
@@ -192,7 +213,7 @@
         background: #fff !important;
         overflow: hidden !important;
       }
-      .topbar, .no-print, .msg-alerta, .msg-sucesso, .scanner-box { display: none !important; }
+      .topbar, .no-print, .msg-alerta, .msg-sucesso, .scanner-box, .modal-backdrop { display: none !important; }
       .container {
         width: 102mm !important;
         height: 50mm !important;
@@ -276,6 +297,12 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    // Configuração fixa do projeto EnesApp no Supabase
+    const SUPABASE_PADRAO = {
+      url: "https://dbszcubbdursrfzzsvkt.supabase.co",
+      anonKey: "sb_publishable_ZoHc7CD-IDL3wNZ3Yy2GRA_LyTqaCXH"
+    };
+
     class ErrorBoundary extends React.Component {
       constructor(props) {
         super(props);
@@ -332,6 +359,24 @@
       { id: 5, patrimonio: "02569-1170", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
       { id: 6, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 10, descricao: "MOUSER", data: "2026-11-23", setor: "ENESA", obra: "129", status: "SEPARAÇÃO NA BAIA", rms: "120012", idProduto: "11795" }
     ];
+
+    function carregarConfigSupabase() {
+      try {
+        const salvo = localStorage.getItem("supabase_config_v1");
+        if (salvo) {
+          const parsed = JSON.parse(salvo);
+          const urlSalva = String(parsed.url || "").trim();
+          const keySalva = String(parsed.anonKey || "").trim();
+          if (urlSalva && keySalva) {
+            return { url: urlSalva, anonKey: keySalva };
+          }
+        }
+      } catch (e) {}
+      return {
+        url: String(SUPABASE_PADRAO.url || "").trim(),
+        anonKey: String(SUPABASE_PADRAO.anonKey || "").trim()
+      };
+    }
 
     function carregarListaSegura(chave, padrao) {
       try {
@@ -425,7 +470,6 @@
       return `STATUS: ${limpo}`;
     }
 
-    // Converte um item de Inventário TI para o formato unificado da etiqueta (EQP no header)
     function itemInventarioParaEtiqueta(row) {
       return {
         id: row.id,
@@ -439,7 +483,6 @@
       };
     }
 
-    // Converte um item de RMS_OBRAS para o formato unificado da etiqueta
     function itemRmsParaEtiqueta(row) {
       return {
         id: row.id,
@@ -453,9 +496,84 @@
       };
     }
 
+    // Mapeamento app <-> PostgreSQL Supabase
+    function invParaDb(r) {
+      return {
+        id: Number(r.id),
+        patrimonio: String(r.patrimonio || ""),
+        patrimonio2: String(r.patrimonio2 || ""),
+        tipo: String(r.tipo || "CPU"),
+        modelo: String(r.modelo || ""),
+        processador: String(r.processador || ""),
+        ram: String(r.ram || ""),
+        armazenamento: String(r.armazenamento || ""),
+        local_eqp: String(r.localEqp || "TI.09A2"),
+        status: String(r.status || ""),
+        data: String(r.data || ""),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function dbParaInv(row) {
+      return {
+        id: Number(row.id),
+        patrimonio: row.patrimonio || "",
+        patrimonio2: row.patrimonio2 || "",
+        tipo: row.tipo || "CPU",
+        modelo: row.modelo || "",
+        processador: row.processador || "",
+        ram: row.ram || "",
+        armazenamento: row.armazenamento || "",
+        localEqp: row.local_eqp || "TI.09A2",
+        status: row.status || "",
+        data: row.data || hojeISO()
+      };
+    }
+
+    function rmsParaDb(r) {
+      return {
+        id: Number(r.id),
+        patrimonio: String(r.patrimonio || ""),
+        patrimonio2: String(r.patrimonio2 || ""),
+        qtd: Number(r.qtd) || 1,
+        descricao: String(r.descricao || ""),
+        data: String(r.data || ""),
+        setor: String(r.setor || "ENESA"),
+        obra: String(r.obra || ""),
+        status: String(r.status || "SEPARAÇÃO NA BAIA"),
+        rms: String(r.rms || ""),
+        id_produto: String(r.idProduto || ""),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function dbParaRms(row) {
+      return {
+        id: Number(row.id),
+        patrimonio: row.patrimonio || "",
+        patrimonio2: row.patrimonio2 || "",
+        qtd: Number(row.qtd) || 1,
+        descricao: row.descricao || "",
+        data: row.data || hojeISO(),
+        setor: row.setor || "ENESA",
+        obra: row.obra || "",
+        status: row.status || "SEPARAÇÃO NA BAIA",
+        rms: row.rms || "",
+        idProduto: row.id_produto || ""
+      };
+    }
+
     function App() {
       const [aba, setAba] = useState("Inventário TI");
       const [origemEtiqueta, setOrigemEtiqueta] = useState("INVENTARIO_TI");
+
+      const [configSupa, setConfigSupa] = useState(carregarConfigSupabase);
+      const [modalSupaAberto, setModalSupaAberto] = useState(false);
+      const [urlInput, setUrlInput] = useState(configSupa.url);
+      const [keyInput, setKeyInput] = useState(configSupa.anonKey);
+      const [statusNuvem, setStatusNuvem] = useState(
+        configSupa.url && configSupa.anonKey ? "Conectando Supabase..." : "LocalStorage (Sem Supabase)"
+      );
 
       const [inventario, setInventario] = useState(() => carregarListaSegura("inventario_ti_itens_v1", INVENTARIO_INICIAL));
       const [itensRms, setItensRms] = useState(() => carregarListaSegura("rms_obras_itens_v1", RMS_INICIAL));
@@ -481,6 +599,7 @@
       const [statusLeitura, setStatusLeitura] = useState("");
       const [cameraAtiva, setCameraAtiva] = useState(false);
 
+      const supabaseRef = useRef(null);
       const barcodeRef = useRef(null);
       const qrRef = useRef(null);
       const bipInputRef = useRef(null);
@@ -488,6 +607,7 @@
       const fileRmsRef = useRef(null);
       const scannerInstanceRef = useRef(null);
 
+      // LocalStorage sempre atualizado
       useEffect(() => {
         try {
           localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(inventario));
@@ -499,6 +619,131 @@
           localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itensRms));
         } catch (e) {}
       }, [itensRms]);
+
+      // Inicializa cliente Supabase, carrega/semeia tabelas e ativa tempo real
+      useEffect(() => {
+        if (!configSupa.url || !configSupa.anonKey || typeof window.supabase === "undefined") {
+          supabaseRef.current = null;
+          setStatusNuvem("LocalStorage (Sem Supabase)");
+          return;
+        }
+        let canal = null;
+        try {
+          const client = window.supabase.createClient(configSupa.url, configSupa.anonKey);
+          supabaseRef.current = client;
+          setStatusNuvem("Supabase Conectado");
+          sincronizarComSupabase(client, false, true);
+
+          canal = client
+            .channel("sync-enesapp-tabelas")
+            .on("postgres_changes", { event: "*", schema: "public", table: "inventario_ti" }, () => {
+              sincronizarComSupabase(client, false, false);
+            })
+            .on("postgres_changes", { event: "*", schema: "public", table: "rms_obras" }, () => {
+              sincronizarComSupabase(client, false, false);
+            })
+            .subscribe();
+        } catch (e) {
+          supabaseRef.current = null;
+          setStatusNuvem("Erro Supabase (Usando LocalStorage)");
+        }
+
+        return () => {
+          if (canal && supabaseRef.current) {
+            supabaseRef.current.removeChannel(canal);
+          }
+        };
+      }, [configSupa.url, configSupa.anonKey]);
+
+      async function sincronizarComSupabase(clientOverride = null, mostrarMensagem = true, semearSeVazio = false) {
+        const client = clientOverride || supabaseRef.current;
+        if (!client) {
+          if (mostrarMensagem) setAviso("Configure a URL e a chave pública do Supabase em 'Config. Supabase'.");
+          return;
+        }
+        setStatusNuvem("Sincronizando...");
+        try {
+          const [resInv, resRms] = await Promise.all([
+            client.from("inventario_ti").select("*").order("id", { ascending: true }),
+            client.from("rms_obras").select("*").order("id", { ascending: true })
+          ]);
+
+          if (resInv.error) throw resInv.error;
+          if (resRms.error) throw resRms.error;
+
+          if (Array.isArray(resInv.data) && resInv.data.length > 0) {
+            const listaInv = resInv.data.map(dbParaInv);
+            setInventario(listaInv);
+            setLinhaSelecionadaInv((prev) => listaInv.some((x) => String(x.id) === String(prev)) ? prev : listaInv[0].id);
+          } else if (semearSeVazio && inventario.length > 0) {
+            await client.from("inventario_ti").upsert(inventario.map(invParaDb), { onConflict: "id" });
+          }
+
+          if (Array.isArray(resRms.data) && resRms.data.length > 0) {
+            const listaRms = resRms.data.map(dbParaRms);
+            setItensRms(listaRms);
+            setLinhaSelecionadaRms((prev) => listaRms.some((x) => String(x.id) === String(prev)) ? prev : listaRms[0].id);
+          } else if (semearSeVazio && itensRms.length > 0) {
+            await client.from("rms_obras").upsert(itensRms.map(rmsParaDb), { onConflict: "id" });
+          }
+
+          setStatusNuvem("Supabase Sincronizado");
+          if (mostrarMensagem) setStatusLeitura("Dados sincronizados com o Supabase e salvos no LocalStorage.");
+        } catch (err) {
+          setStatusNuvem("Offline / Erro Supabase (LocalStorage ativo)");
+          if (mostrarMensagem) setAviso(`Falha ao sincronizar com Supabase: ${err.message || err}`);
+        }
+      }
+
+      async function salvarItemNoSupabase(tabela, payloadDb) {
+        const client = supabaseRef.current;
+        if (!client) return;
+        setStatusNuvem("Salvando...");
+        try {
+          const { error } = await client.from(tabela).upsert(payloadDb, { onConflict: "id" });
+          if (error) throw error;
+          setStatusNuvem("Supabase Sincronizado");
+        } catch (err) {
+          setStatusNuvem("Salvo Local (Erro Supabase)");
+        }
+      }
+
+      async function excluirItemNoSupabase(tabela, id) {
+        const client = supabaseRef.current;
+        if (!client) return;
+        setStatusNuvem("Excluindo...");
+        try {
+          const { error } = await client.from(tabela).delete().eq("id", Number(id));
+          if (error) throw error;
+          setStatusNuvem("Supabase Sincronizado");
+        } catch (err) {
+          setStatusNuvem("Removido Local (Erro Supabase)");
+        }
+      }
+
+      async function enviarListaCompletaParaSupabase(tabela, listaDb) {
+        const client = supabaseRef.current;
+        if (!client || !Array.isArray(listaDb) || listaDb.length === 0) return;
+        setStatusNuvem("Enviando...");
+        try {
+          const { error } = await client.from(tabela).upsert(listaDb, { onConflict: "id" });
+          if (error) throw error;
+          setStatusNuvem("Supabase Sincronizado");
+        } catch (err) {
+          setStatusNuvem("Salvo Local (Erro Supabase)");
+        }
+      }
+
+      function salvarConfigSupaModal(e) {
+        e.preventDefault();
+        const limpo = { url: urlInput.trim(), anonKey: keyInput.trim() };
+        try {
+          localStorage.setItem("supabase_config_v1", JSON.stringify(limpo));
+        } catch (err) {}
+        setConfigSupa(limpo);
+        setModalSupaAberto(false);
+        setAviso("");
+      }
 
       const listaAtivaEtiqueta = origemEtiqueta === "INVENTARIO_TI" ? inventario : itensRms;
       const registroBrutoEtq = listaAtivaEtiqueta.find((r) => String(r.id) === String(eqpSelecionado)) || null;
@@ -695,6 +940,7 @@
 
       // Funções Inventário TI
       function atualizarCampoInv(index, campo, valor) {
+        let itemAtualizado = null;
         setInventario((prev) => {
           const copia = [...prev];
           const anterior = index > 0 ? copia[index - 1] : null;
@@ -713,36 +959,39 @@
           }
 
           copia[index] = { ...copia[index], [campo]: novoValor };
+          itemAtualizado = copia[index];
           return copia;
         });
+        if (itemAtualizado) salvarItemNoSupabase("inventario_ti", invParaDb(itemAtualizado));
       }
 
       function adicionarLinhaInv() {
+        let novaLinha = null;
         setInventario((prev) => {
           const ultimo = prev[prev.length - 1];
           const proximoId = prev.reduce((max, r) => Math.max(max, Number(r.id) || 0), 0) + 1;
-          return [
-            ...prev,
-            {
-              id: proximoId,
-              patrimonio: "",
-              patrimonio2: "",
-              tipo: ultimo ? ultimo.tipo : "CPU",
-              modelo: ultimo ? ultimo.modelo : "",
-              processador: ultimo ? ultimo.processador : "",
-              ram: "",
-              armazenamento: "",
-              localEqp: ultimo ? ultimo.localEqp : "TI.09A2",
-              status: ultimo ? ultimo.status : "Em estoque Funcionando",
-              data: hojeISO()
-            }
-          ];
+          novaLinha = {
+            id: proximoId,
+            patrimonio: "",
+            patrimonio2: "",
+            tipo: ultimo ? ultimo.tipo : "CPU",
+            modelo: ultimo ? ultimo.modelo : "",
+            processador: ultimo ? ultimo.processador : "",
+            ram: "",
+            armazenamento: "",
+            localEqp: ultimo ? ultimo.localEqp : "TI.09A2",
+            status: ultimo ? ultimo.status : "Em estoque Funcionando",
+            data: hojeISO()
+          };
+          return [...prev, novaLinha];
         });
+        if (novaLinha) salvarItemNoSupabase("inventario_ti", invParaDb(novaLinha));
       }
 
       function excluirLinhaInv(index) {
+        let removida = null;
         setInventario((prev) => {
-          const removida = prev[index];
+          removida = prev[index];
           const restante = prev.filter((_, i) => i !== index);
           if (removida && origemEtiqueta === "INVENTARIO_TI" && String(removida.id) === String(eqpSelecionado)) {
             setEqpSelecionado(restante.length > 0 ? restante[0].id : "");
@@ -752,6 +1001,7 @@
           }
           return restante;
         });
+        if (removida) excluirItemNoSupabase("inventario_ti", removida.id);
       }
 
       function executarAcaoInv(acao, row, index) {
@@ -828,6 +1078,7 @@
             setInventario(linhasDados);
             setLinhaSelecionadaInv(linhasDados[0].id);
             if (origemEtiqueta === "INVENTARIO_TI") setEqpSelecionado(linhasDados[0].id);
+            enviarListaCompletaParaSupabase("inventario_ti", linhasDados.map(invParaDb));
             setAviso(`Importados ${linhasDados.length} itens no Inventário TI (${file.name}).`);
           } catch (err) {
             setAviso("Erro ao ler o arquivo Excel do Inventário TI.");
@@ -872,6 +1123,7 @@
 
       // Funções RMS_OBRAS
       function atualizarCampoRms(index, campo, valor) {
+        let itemAtualizado = null;
         setItensRms((prev) => {
           const copia = [...prev];
           const anterior = index > 0 ? copia[index - 1] : null;
@@ -887,36 +1139,39 @@
           }
 
           copia[index] = { ...copia[index], [campo]: novoValor };
+          itemAtualizado = copia[index];
           return copia;
         });
+        if (itemAtualizado) salvarItemNoSupabase("rms_obras", rmsParaDb(itemAtualizado));
       }
 
       function adicionarLinhaRms() {
+        let novaLinha = null;
         setItensRms((prev) => {
           const ultimo = prev[prev.length - 1];
           const proximoId = prev.reduce((max, r) => Math.max(max, Number(r.id) || 0), 0) + 1;
-          return [
-            ...prev,
-            {
-              id: proximoId,
-              patrimonio: "",
-              patrimonio2: "",
-              qtd: 1,
-              descricao: "",
-              data: hojeISO(),
-              setor: ultimo ? ultimo.setor : "ENESA",
-              obra: ultimo ? ultimo.obra : "",
-              status: ultimo ? ultimo.status : "SEPARAÇÃO NA BAIA",
-              rms: ultimo ? ultimo.rms : "",
-              idProduto: ""
-            }
-          ];
+          novaLinha = {
+            id: proximoId,
+            patrimonio: "",
+            patrimonio2: "",
+            qtd: 1,
+            descricao: "",
+            data: hojeISO(),
+            setor: ultimo ? ultimo.setor : "ENESA",
+            obra: ultimo ? ultimo.obra : "",
+            status: ultimo ? ultimo.status : "SEPARAÇÃO NA BAIA",
+            rms: ultimo ? ultimo.rms : "",
+            idProduto: ""
+          };
+          return [...prev, novaLinha];
         });
+        if (novaLinha) salvarItemNoSupabase("rms_obras", rmsParaDb(novaLinha));
       }
 
       function excluirLinhaRms(index) {
+        let removida = null;
         setItensRms((prev) => {
-          const removida = prev[index];
+          removida = prev[index];
           const restante = prev.filter((_, i) => i !== index);
           if (removida && origemEtiqueta === "RMS_OBRAS" && String(removida.id) === String(eqpSelecionado)) {
             setEqpSelecionado(restante.length > 0 ? restante[0].id : "");
@@ -926,6 +1181,7 @@
           }
           return restante;
         });
+        if (removida) excluirItemNoSupabase("rms_obras", removida.id);
       }
 
       function executarAcaoRms(acao, row, index) {
@@ -1002,6 +1258,7 @@
             setItensRms(linhasDados);
             setLinhaSelecionadaRms(linhasDados[0].id);
             if (origemEtiqueta === "RMS_OBRAS") setEqpSelecionado(linhasDados[0].id);
+            enviarListaCompletaParaSupabase("rms_obras", linhasDados.map(rmsParaDb));
             setAviso(`Importados ${linhasDados.length} itens na RMS_OBRAS (${file.name}).`);
           } catch (err) {
             setAviso("Erro ao ler o arquivo Excel da RMS_OBRAS.");
@@ -1122,7 +1379,59 @@
             >
               Etiqueta
             </button>
+            <button
+              onClick={() => {
+                setUrlInput(configSupa.url);
+                setKeyInput(configSupa.anonKey);
+                setModalSupaAberto(true);
+              }}
+            >
+              Config. Supabase
+            </button>
+            <button onClick={() => sincronizarComSupabase(null, true, false)}>
+              Sincronizar
+            </button>
+            <span className="db-status">{statusNuvem}</span>
           </div>
+
+          {modalSupaAberto && (
+            <div className="modal-backdrop" onClick={() => setModalSupaAberto(false)}>
+              <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                <div className="banner" style={{ marginBottom: 12 }}>CONFIGURAÇÃO DO SUPABASE</div>
+                <form onSubmit={salvarConfigSupaModal}>
+                  <div className="modal-field">
+                    <label>Project URL (ex.: https://xxxx.supabase.co)</label>
+                    <input
+                      type="text"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      placeholder="https://seu-projeto.supabase.co"
+                    />
+                  </div>
+                  <div className="modal-field">
+                    <label>Publishable / anon public key</label>
+                    <input
+                      type="text"
+                      value={keyInput}
+                      onChange={(e) => setKeyInput(e.target.value)}
+                      placeholder="sb_publishable_..."
+                    />
+                  </div>
+                  <p style={{ fontSize: 12, color: "#475569", marginTop: 0 }}>
+                    Os dados continuam salvos no <strong>LocalStorage</strong> do navegador e sincronizam nas tabelas <code>inventario_ti</code> e <code>rms_obras</code>.
+                  </p>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <button type="button" className="btn-clear" onClick={() => setModalSupaAberto(false)}>
+                      Cancelar
+                    </button>
+                    <button type="submit" className="btn-add">
+                      Salvar e Conectar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           <div className="container">
             {aba === "Inventário TI" && (
@@ -1198,6 +1507,7 @@
                     onClick={() => {
                       try { localStorage.removeItem("inventario_ti_itens_v1"); } catch (e) {}
                       setInventario(INVENTARIO_INICIAL);
+                      enviarListaCompletaParaSupabase("inventario_ti", INVENTARIO_INICIAL.map(invParaDb));
                       setPesquisaInv("");
                       setStatusLeitura("");
                       setAviso("");
@@ -1406,6 +1716,7 @@
                     onClick={() => {
                       try { localStorage.removeItem("rms_obras_itens_v1"); } catch (e) {}
                       setItensRms(RMS_INICIAL);
+                      enviarListaCompletaParaSupabase("rms_obras", RMS_INICIAL.map(rmsParaDb));
                       setPesquisaRms("");
                       setStatusLeitura("");
                       setAviso("");
