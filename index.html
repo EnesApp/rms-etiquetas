@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RMS OBRAS & Etiquetas</title>
-  <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) via CDN -->
+  <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; background: #eef2f6; color: #111; }
@@ -51,6 +52,10 @@
       border: 1px solid #cbd5e1; text-align: center;
     }
     td { border: 1px solid #cbd5e1; padding: 4px; text-align: center; }
+    tr.linha-selecionada {
+      background: #fef9c3 !important;
+      outline: 2px solid #eab308;
+    }
     td input, td select {
       width: 100%; border: 1px solid transparent; padding: 4px;
       font-size: 12px; text-align: center; background: transparent;
@@ -58,8 +63,31 @@
     td input:focus, td select:focus {
       border: 1px solid #1f497d; background: #fffef0; outline: none;
     }
+    .acao-select {
+      border: 1px solid #94a3b8 !important;
+      border-radius: 4px;
+      background: #f8fafc !important;
+      font-weight: bold;
+      color: #0f172a;
+      cursor: pointer;
+      padding: 4px 6px !important;
+    }
     .status-baia { background: #76933c !important; color: #fff; font-weight: bold; }
     .status-semlista { background: #c0504d !important; color: #fff; font-weight: bold; }
+
+    /* Scanner QR Code na RMS_OBRAS */
+    .scanner-box {
+      margin-top: 12px; padding: 12px; border: 1px solid #94a3b8;
+      border-radius: 8px; background: #f8fafc;
+    }
+    .scanner-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px; gap: 8px; flex-wrap: wrap;
+    }
+    #qr-reader-rms {
+      width: 100%; max-width: 420px; margin: 0 auto;
+      border-radius: 6px; overflow: hidden; background: #000;
+    }
 
     /* Tela Etiqueta */
     .controls-row {
@@ -71,38 +99,54 @@
     }
     .hl-yellow { background: #fff2cc !important; font-weight: bold; }
 
+    /* Proporção de etiqueta 102mm x 50mm (largura ~2x altura) */
     .etiqueta-box {
-      width: 460px; max-width: 100%; border: 2px solid #000; background: #fff;
-      padding: 6px 8px 0 8px; margin: 8px 0 14px 0;
+      width: 480px; max-width: 100%; border: 2px solid #000; background: #fff;
+      padding: 4px 6px 0 6px; margin: 8px 0 14px 0; overflow: hidden;
     }
     .etq-obra {
-      text-align: center; font-size: 26px; font-weight: bold;
-      border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;
+      text-align: center; font-size: 20px; font-weight: bold; line-height: 1.1;
+      border-bottom: 1px solid #cbd5e1; padding-bottom: 2px;
     }
     .etq-barcode {
-      text-align: center; border-bottom: 1px solid #cbd5e1; padding: 4px 0;
+      text-align: center; border-bottom: 1px solid #cbd5e1; padding: 2px 0; min-height: 28px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .etq-barcode svg {
+      width: 100%; max-width: 440px; height: 24px; display: block;
+    }
+    .etq-sem-pat {
+      font-size: 10px; color: #64748b; font-style: italic;
     }
     .etq-body-row {
-      display: flex; align-items: stretch; justify-content: space-between;
-      border-bottom: 1px solid #cbd5e1;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #cbd5e1; padding: 2px 0;
     }
-    .etq-info { flex: 1; padding: 4px 6px; text-align: center; }
-    .etq-pat { font-size: 15px; font-weight: bold; margin: 2px 0; }
-    .etq-sub { font-size: 11px; margin: 2px 0; }
-    .etq-rm { font-size: 12.5px; font-weight: bold; margin: 2px 0; }
-    .etq-status { font-size: 11px; margin: 2px 0; }
+    .etq-info { flex: 1; padding: 1px 4px; text-align: center; line-height: 1.22; }
+    .etq-pat { font-size: 13px; font-weight: bold; margin: 1px 0; }
+    .etq-sub { font-size: 9.5px; margin: 1px 0; }
+    .etq-rm { font-size: 10.5px; font-weight: bold; margin: 1px 0; }
+    .etq-status { font-size: 9.5px; font-weight: bold; margin: 1px 0; }
     .etq-qr-area {
-      width: 108px; display: flex; align-items: center; justify-content: center;
-      border-left: 1px solid #cbd5e1; padding: 4px; background: #fff;
+      width: 68px; min-width: 68px; display: flex; align-items: center; justify-content: center;
+      border-left: 1px solid #cbd5e1; padding: 2px; background: #fff;
+    }
+    .etq-qr-area canvas, .etq-qr-area img {
+      width: 58px !important; height: 58px !important; display: block;
     }
     .etq-footer {
       background: #1f497d; color: #fff; text-align: center;
-      font-weight: bold; font-size: 12px; padding: 5px; margin: 0 -8px;
+      font-weight: bold; font-size: 10px; line-height: 1.15;
+      padding: 3px 4px; margin: 0 -6px;
     }
     .btn-print {
       background: #365f91; color: #fff; border: 2px solid #1f497d;
       padding: 10px 20px; font-size: 13px; font-weight: bold; font-style: italic;
       border-radius: 6px; cursor: pointer;
+    }
+    .btn-cam {
+      background: #1d4ed8; color: #fff; border: none; padding: 7px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
     }
     .btn-add {
       background: #1e7e34; color: #fff; border: none; padding: 7px 12px;
@@ -128,16 +172,100 @@
       margin-top: 8px; padding: 8px 12px; border-radius: 5px;
       background: #fef3c7; border: 1px solid #f59e0b; font-size: 13px;
     }
+    .msg-sucesso {
+      margin-top: 8px; padding: 8px 12px; border-radius: 5px;
+      background: #dcfce7; border: 1px solid #22c55e; color: #14532d; font-size: 13px; font-weight: bold;
+    }
 
-    /* Impressão térmica */
+    /* Impressão térmica exata 102mm x 50mm em 1 única etiqueta */
+    @page {
+      size: 102mm 50mm;
+      margin: 0;
+    }
+
     @media print {
-      body { background: #fff; margin: 0; }
-      .topbar, .no-print { display: none !important; }
-      .container { margin: 0; padding: 0; max-width: none; }
-      .card { box-shadow: none; padding: 0; margin: 0; border-radius: 0; }
+      html, body {
+        width: 102mm;
+        height: 50mm;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        overflow: hidden !important;
+      }
+      .topbar, .no-print, .msg-alerta, .msg-sucesso, .scanner-box { display: none !important; }
+      .container {
+        width: 102mm !important;
+        height: 50mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 102mm !important;
+      }
+      .card {
+        width: 102mm !important;
+        height: 50mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: #fff !important;
+      }
       .etiqueta-box {
-        margin: 0 auto; width: 100mm; max-width: 100mm;
-        border: 1.5pt solid #000; page-break-inside: avoid;
+        width: 98mm !important;
+        max-width: 98mm !important;
+        height: 46mm !important;
+        max-height: 46mm !important;
+        margin: 2mm auto !important;
+        padding: 1mm 1.5mm 0 1.5mm !important;
+        border: 1pt solid #000 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+      }
+      .etq-obra {
+        font-size: 13pt !important;
+        line-height: 1.05 !important;
+        padding-bottom: 0.5mm !important;
+      }
+      .etq-barcode {
+        min-height: 8mm !important;
+        padding: 0.5mm 0 !important;
+      }
+      .etq-barcode svg {
+        width: 92mm !important;
+        max-width: 92mm !important;
+        height: 7.5mm !important;
+      }
+      .etq-body-row {
+        flex: 1 !important;
+        padding: 0.5mm 0 !important;
+      }
+      .etq-info {
+        padding: 0 1mm !important;
+        line-height: 1.15 !important;
+      }
+      .etq-pat { font-size: 8.8pt !important; margin: 0 !important; }
+      .etq-sub { font-size: 6.5pt !important; margin: 0.3mm 0 !important; }
+      .etq-rm { font-size: 7.5pt !important; margin: 0 !important; }
+      .etq-status { font-size: 6.5pt !important; margin: 0 !important; }
+      .etq-qr-area {
+        width: 16mm !important;
+        min-width: 16mm !important;
+        padding: 0.5mm !important;
+      }
+      .etq-qr-area canvas, .etq-qr-area img {
+        width: 14mm !important;
+        height: 14mm !important;
+      }
+      .etq-footer {
+        font-size: 6.8pt !important;
+        line-height: 1.1 !important;
+        padding: 1mm 2mm !important;
+        margin: 0 -1.5mm !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
     }
   </style>
@@ -193,6 +321,43 @@
       return `${d.getFullYear()}-${mm}-${dd}`;
     }
 
+    function temPatrimonioValido(pat) {
+      const txt = String(pat || "").trim();
+      if (!txt) return false;
+      const lower = txt.toLowerCase();
+      return !lower.includes("não relacionado") && !lower.includes("nao relacionado") && !lower.includes("não informado") && !lower.includes("nao informado");
+    }
+
+    // Extrai PAT, RM e ID (ID do Produto) de um texto de QR Code ou URL
+    function parsearDadosQR(textoBruto) {
+      const raw = String(textoBruto || "").trim();
+      if (!raw) return { pat: "", rm: "", idProd: "", termoFiltro: "" };
+
+      try {
+        if (raw.startsWith("http://") || raw.startsWith("https://")) {
+          const url = new URL(raw);
+          const patUrl = (url.searchParams.get("pat") || "").trim();
+          const rmUrl = (url.searchParams.get("rm") || "").trim();
+          const idProdUrl = (url.searchParams.get("idProd") || url.searchParams.get("id") || "").trim();
+          const termoFiltro = idProdUrl || patUrl || rmUrl || raw;
+          return { pat: patUrl, rm: rmUrl, idProd: idProdUrl, termoFiltro };
+        }
+      } catch (e) {}
+
+      const patMatch = raw.match(/PAT\s*:\s*([^|]+)/i);
+      const rmMatch = raw.match(/RM\s*:\s*([^|]+)/i);
+      const idMatch = raw.match(/ID\s*:\s*([^|]+)/i);
+
+      const pat = patMatch ? patMatch[1].trim() : "";
+      const rm = rmMatch ? rmMatch[1].trim() : "";
+      const idProd = idMatch ? idMatch[1].trim() : "";
+
+      const patLimpo = temPatrimonioValido(pat) ? pat : "";
+      const termoFiltro = idProd || patLimpo || rm || raw;
+
+      return { pat: patLimpo, rm, idProd, termoFiltro };
+    }
+
     function App() {
       const [aba, setAba] = useState("Etiqueta");
       const [itens, setItens] = useState(() => {
@@ -200,22 +365,109 @@
         return salvo ? JSON.parse(salvo) : DADOS_INICIAIS;
       });
       const [pesquisa, setPesquisa] = useState("");
+      const [linhaSelecionadaId, setLinhaSelecionadaId] = useState(4);
       const [eqpSelecionado, setEqpSelecionado] = useState(4);
       const [codBarrasInput, setCodBarrasInput] = useState("");
       const [aviso, setAviso] = useState("");
+      const [statusLeitura, setStatusLeitura] = useState("");
+      const [cameraAtiva, setCameraAtiva] = useState(false);
 
       const barcodeRef = useRef(null);
       const qrRef = useRef(null);
       const bipInputRef = useRef(null);
       const fileInputRef = useRef(null);
+      const scannerInstanceRef = useRef(null);
 
       useEffect(() => {
         localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itens));
       }, [itens]);
 
-      const itemAtual = itens.find((r) => String(r.id) === String(eqpSelecionado)) || null;
+      // Lê parâmetros da URL caso o celular abra o link vindo do QR Code
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const patParam = (params.get("pat") || "").trim();
+        const rmParam = (params.get("rm") || "").trim();
+        const idProdParam = (params.get("idProd") || params.get("id") || "").trim();
 
-      // Filtra por qualquer coluna da linha
+        if (patParam || rmParam || idProdParam) {
+          setAba("RMS_OBRAS");
+          aplicarBuscaESelecao({ pat: patParam, rm: rmParam, idProd: idProdParam }, itens);
+        }
+      }, []);
+
+      function aplicarBuscaESelecao(dadosQR, listaItens) {
+        const { pat, rm, idProd, termoFiltro } = dadosQR;
+        const busca = termoFiltro || idProd || pat || rm;
+        setPesquisa(busca);
+
+        const encontrado = listaItens.find((r) => {
+          if (idProd && String(r.idProduto || "").trim().toLowerCase() === idProd.toLowerCase()) return true;
+          if (pat && String(r.patrimonio || "").trim().toLowerCase() === pat.toLowerCase()) return true;
+          if (rm && String(r.rms || "").trim().toLowerCase() === rm.toLowerCase()) return true;
+          return false;
+        });
+
+        if (encontrado) {
+          setLinhaSelecionadaId(encontrado.id);
+          setEqpSelecionado(encontrado.id);
+          setAviso("");
+          setStatusLeitura(
+            `Selecionado: EQP ${encontrado.id} — ${encontrado.descricao || "Item"} (ID Produto: ${encontrado.idProduto || "-"} | PAT: ${encontrado.patrimonio || "-"} | RM: ${encontrado.rms || "-"})`
+          );
+        } else {
+          setAviso(`Filtro aplicado com "${busca}", mas nenhum item exato foi encontrado na lista atual.`);
+          setStatusLeitura("");
+        }
+      }
+
+      // Controla abertura/fechamento da câmera para ler QR Code na aba RMS_OBRAS
+      useEffect(() => {
+        if (!cameraAtiva || aba !== "RMS_OBRAS") {
+          if (scannerInstanceRef.current) {
+            scannerInstanceRef.current.stop().catch(() => {}).finally(() => {
+              scannerInstanceRef.current = null;
+            });
+          }
+          return;
+        }
+
+        if (typeof Html5Qrcode === "undefined") {
+          setAviso("Biblioteca da câmera não carregou. Verifique a conexão com a internet.");
+          setCameraAtiva(false);
+          return;
+        }
+
+        const html5QrCode = new Html5Qrcode("qr-reader-rms");
+        scannerInstanceRef.current = html5QrCode;
+
+        html5QrCode
+          .start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            (decodedText) => {
+              const dados = parsearDadosQR(decodedText);
+              aplicarBuscaESelecao(dados, itens);
+              setCameraAtiva(false);
+            },
+            () => {}
+          )
+          .catch(() => {
+            setAviso("Não foi possível acessar a câmera. Permita o uso da câmera no navegador ou use em HTTPS.");
+            setCameraAtiva(false);
+          });
+
+        return () => {
+          if (scannerInstanceRef.current) {
+            scannerInstanceRef.current.stop().catch(() => {}).finally(() => {
+              scannerInstanceRef.current = null;
+            });
+          }
+        };
+      }, [cameraAtiva, aba]);
+
+      const itemAtual = itens.find((r) => String(r.id) === String(eqpSelecionado)) || null;
+      const patValido = itemAtual ? temPatrimonioValido(itemAtual.patrimonio) : false;
+
       const termoBusca = pesquisa.trim().toLowerCase();
       const itensFiltrados = itens
         .map((row, index) => ({ row, index }))
@@ -238,42 +490,55 @@
           return campos.some((val) => String(val ?? "").toLowerCase().includes(termoBusca));
         });
 
-      // Desenha Code 128 e QR Code sempre que itemAtual ou aba mudar
       useEffect(() => {
         if (aba !== "Etiqueta") return;
 
         if (barcodeRef.current) {
           barcodeRef.current.innerHTML = "";
           if (itemAtual) {
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            barcodeRef.current.appendChild(svg);
-            try {
-              JsBarcode(svg, `${itemAtual.id}-${itemAtual.patrimonio}`, {
-                format: "CODE128",
-                width: 1.6,
-                height: 36,
-                displayValue: false,
-                margin: 2
-              });
-            } catch (e) {}
+            if (patValido) {
+              const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+              barcodeRef.current.appendChild(svg);
+              try {
+                JsBarcode(svg, `${itemAtual.id}-${String(itemAtual.patrimonio).trim()}`, {
+                  format: "CODE128",
+                  width: 1.5,
+                  height: 28,
+                  displayValue: false,
+                  margin: 1
+                });
+              } catch (e) {
+                barcodeRef.current.innerHTML = `<span class="etq-sem-pat">Sem código de barras</span>`;
+              }
+            } else {
+              barcodeRef.current.innerHTML = `<span class="etq-sem-pat">Patrimônio não relacionado (sem código de barras)</span>`;
+            }
           }
         }
 
         if (qrRef.current) {
           qrRef.current.innerHTML = "";
           if (itemAtual) {
-            const textoQR = `PAT: ${itemAtual.patrimonio} | RM: ${itemAtual.rms} | ID: ${itemAtual.idProduto}`;
-            new QRCode(qrRef.current, {
-              text: textoQR,
-              width: 96,
-              height: 96,
-              correctLevel: QRCode.CorrectLevel.M
+            const patTexto = patValido ? String(itemAtual.patrimonio).trim() : "Não Relacionado";
+            const baseUrl = window.location.href.split("?")[0];
+            const query = new URLSearchParams({
+              pat: patValido ? patTexto : "",
+              rm: String(itemAtual.rms || "").trim(),
+              idProd: String(itemAtual.idProduto || "").trim()
             });
+            const textoQR = `${baseUrl}?${query.toString()}`;
+            try {
+              new QRCode(qrRef.current, {
+                text: textoQR,
+                width: 96,
+                height: 96,
+                correctLevel: QRCode.CorrectLevel.M
+              });
+            } catch (e) {}
           }
         }
-      }, [aba, itemAtual]);
+      }, [aba, itemAtual, patValido]);
 
-      // Lógica igual à célula F1 do VBA: aceita "1-02562-1298", "02562-1298" ou "1"
       function processarLeituraCodigoBarras(valorBruto) {
         const lido = String(valorBruto || "").trim();
         if (!lido) return;
@@ -296,6 +561,7 @@
 
         if (achado) {
           setEqpSelecionado(achado.id);
+          setLinhaSelecionadaId(achado.id);
           setAviso("");
         } else {
           setAviso(`Código '${lido}' não encontrado na RMS_OBRAS.`);
@@ -307,7 +573,6 @@
         }, 10);
       }
 
-      // Lógica da RMS_OBRAS (formatação automática de patrimônio + autopreenchimento)
       function atualizarCampoItem(index, campo, valor) {
         setItens((prev) => {
           const copia = [...prev];
@@ -361,7 +626,31 @@
         });
       }
 
-      // Importa lista a partir de arquivo Excel (.xlsx, .xls, .xlsm, .csv)
+      function excluirLinha(index) {
+        setItens((prev) => {
+          const removida = prev[index];
+          const restante = prev.filter((_, i) => i !== index);
+          if (removida && String(removida.id) === String(eqpSelecionado)) {
+            setEqpSelecionado(restante.length > 0 ? restante[0].id : "");
+          }
+          if (removida && String(removida.id) === String(linhaSelecionadaId)) {
+            setLinhaSelecionadaId(restante.length > 0 ? restante[0].id : null);
+          }
+          return restante;
+        });
+      }
+
+      function executarAcaoLinha(acao, row, index) {
+        if (acao === "etiqueta") {
+          setEqpSelecionado(row.id);
+          setLinhaSelecionadaId(row.id);
+          setAviso("");
+          setAba("Etiqueta");
+        } else if (acao === "excluir") {
+          excluirLinha(index);
+        }
+      }
+
       function importarExcelRMS(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
@@ -439,6 +728,7 @@
 
             setItens(linhasDados);
             setEqpSelecionado(linhasDados[0].id);
+            setLinhaSelecionadaId(linhasDados[0].id);
             setAviso(`Importados ${linhasDados.length} itens da planilha '${file.name}'.`);
           } catch (err) {
             setAviso("Erro ao ler o arquivo Excel. Verifique se o formato é .xlsx, .xls, .xlsm ou .csv.");
@@ -449,7 +739,6 @@
         reader.readAsArrayBuffer(file);
       }
 
-      // Exporta a lista atual para um arquivo Excel (.xlsx) real com a aba RMS_OBRAS
       function exportarExcelRMS() {
         const linhasExcel = [
           ["RELAÇÃO ATENDIMENTO - RMS OBRAS"],
@@ -507,10 +796,19 @@
         <div>
           <div className="topbar">
             <strong>SISTEMA RMS OBRAS</strong>
-            <button className={aba === "RMS_OBRAS" ? "active" : ""} onClick={() => setAba("RMS_OBRAS")}>
+            <button
+              className={aba === "RMS_OBRAS" ? "active" : ""}
+              onClick={() => setAba("RMS_OBRAS")}
+            >
               RMS_OBRAS
             </button>
-            <button className={aba === "Etiqueta" ? "active" : ""} onClick={() => setAba("Etiqueta")}>
+            <button
+              className={aba === "Etiqueta" ? "active" : ""}
+              onClick={() => {
+                setCameraAtiva(false);
+                setAba("Etiqueta");
+              }}
+            >
               Etiqueta
             </button>
           </div>
@@ -525,10 +823,32 @@
                     className="search-box"
                     placeholder="Pesquisar em qualquer coluna (ID, Patrimônio, Descrição, Obra, RMS, ID Produto, Status...)"
                     value={pesquisa}
-                    onChange={(e) => setPesquisa(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPesquisa(val);
+                      if (!val.trim()) setStatusLeitura("");
+                    }}
                   />
+                  <button
+                    type="button"
+                    className="btn-cam"
+                    onClick={() => {
+                      setAviso("");
+                      setCameraAtiva((prev) => !prev);
+                    }}
+                  >
+                    {cameraAtiva ? "Fechar Câmera" : "Ler QR Code / Câmera"}
+                  </button>
                   {pesquisa && (
-                    <button className="btn-clear" onClick={() => setPesquisa("")}>
+                    <button
+                      type="button"
+                      className="btn-clear"
+                      onClick={() => {
+                        setPesquisa("");
+                        setStatusLeitura("");
+                        setAviso("");
+                      }}
+                    >
                       Limpar
                     </button>
                   )}
@@ -536,6 +856,22 @@
                     Exibindo {itensFiltrados.length} de {itens.length}
                   </span>
                 </div>
+
+                {cameraAtiva && (
+                  <div className="scanner-box">
+                    <div className="scanner-header">
+                      <strong>Aponte a câmera para o QR Code da etiqueta</strong>
+                      <button
+                        type="button"
+                        className="btn-clear"
+                        onClick={() => setCameraAtiva(false)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                    <div id="qr-reader-rms"></div>
+                  </div>
+                )}
 
                 <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button className="btn-add" onClick={adicionarLinha}>+ Nova Linha</button>
@@ -556,6 +892,7 @@
                       localStorage.removeItem("rms_obras_itens_v1");
                       setItens(DADOS_INICIAIS);
                       setPesquisa("");
+                      setStatusLeitura("");
                       setAviso("");
                     }}
                   >
@@ -563,6 +900,7 @@
                   </button>
                 </div>
 
+                {statusLeitura && <div className="msg-sucesso">{statusLeitura}</div>}
                 {aviso && <div className="msg-alerta">{aviso}</div>}
 
                 <table>
@@ -583,88 +921,103 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {itensFiltrados.map(({ row, index }) => (
-                      <tr key={row.id}>
-                        <td>{row.id}</td>
-                        <td>
-                          <input
-                            value={row.patrimonio}
-                            placeholder="Ex: 1450 ou 02569-0762"
-                            onChange={(e) => atualizarCampoItem(index, "patrimonio", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            value={row.patrimonio2}
-                            onChange={(e) => atualizarCampoItem(index, "patrimonio2", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={row.qtd}
-                            onChange={(e) => atualizarCampoItem(index, "qtd", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            value={row.descricao}
-                            onChange={(e) => atualizarCampoItem(index, "descricao", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="date"
-                            value={row.data}
-                            onChange={(e) => atualizarCampoItem(index, "data", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            value={row.setor}
-                            onChange={(e) => atualizarCampoItem(index, "setor", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            value={row.obra}
-                            onChange={(e) => atualizarCampoItem(index, "obra", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <select
-                            className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
-                            value={row.status}
-                            onChange={(e) => atualizarCampoItem(index, "status", e.target.value)}
-                          >
-                            <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
-                            <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
-                          </select>
-                        </td>
-                        <td>
-                          <input
-                            value={row.rms}
-                            onChange={(e) => atualizarCampoItem(index, "rms", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            value={row.idProduto}
-                            onChange={(e) => atualizarCampoItem(index, "idProduto", e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <button
-                            onClick={() => {
-                              setEqpSelecionado(row.id);
-                              setAba("Etiqueta");
-                            }}
-                          >
-                            Etiqueta
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {itensFiltrados.map(({ row, index }) => {
+                      const selecionada = String(row.id) === String(linhaSelecionadaId);
+                      return (
+                        <tr
+                          key={row.id}
+                          className={selecionada ? "linha-selecionada" : ""}
+                          onClick={() => {
+                            setLinhaSelecionadaId(row.id);
+                            setEqpSelecionado(row.id);
+                          }}
+                        >
+                          <td>{row.id}</td>
+                          <td>
+                            <input
+                              value={row.patrimonio}
+                              placeholder="Ex: 1450 ou 02569-0762"
+                              onChange={(e) => atualizarCampoItem(index, "patrimonio", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={row.patrimonio2}
+                              onChange={(e) => atualizarCampoItem(index, "patrimonio2", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={row.qtd}
+                              onChange={(e) => atualizarCampoItem(index, "qtd", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={row.descricao}
+                              onChange={(e) => atualizarCampoItem(index, "descricao", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="date"
+                              value={row.data}
+                              onChange={(e) => atualizarCampoItem(index, "data", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={row.setor}
+                              onChange={(e) => atualizarCampoItem(index, "setor", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={row.obra}
+                              onChange={(e) => atualizarCampoItem(index, "obra", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <select
+                              className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
+                              value={row.status}
+                              onChange={(e) => atualizarCampoItem(index, "status", e.target.value)}
+                            >
+                              <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
+                              <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input
+                              value={row.rms}
+                              onChange={(e) => atualizarCampoItem(index, "rms", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={row.idProduto}
+                              onChange={(e) => atualizarCampoItem(index, "idProduto", e.target.value)}
+                            />
+                          </td>
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <select
+                              className="acao-select"
+                              value=""
+                              onChange={(e) => {
+                                const escolha = e.target.value;
+                                e.target.value = "";
+                                executarAcaoLinha(escolha, row, index);
+                              }}
+                            >
+                              <option value="" disabled>Ação...</option>
+                              <option value="etiqueta">Etiqueta</option>
+                              <option value="excluir">Excluir</option>
+                            </select>
+                          </td>
+                        </tr>
+                      );
+                    })}
                     {itensFiltrados.length === 0 && (
                       <tr>
                         <td colSpan="12" style={{ padding: 14, color: "#64748b" }}>
@@ -686,8 +1039,26 @@
                     className="hl-yellow"
                     style={{ width: 70, textAlign: "center" }}
                     value={eqpSelecionado}
-                    onChange={(e) => setEqpSelecionado(e.target.value)}
+                    onChange={(e) => {
+                      setEqpSelecionado(e.target.value);
+                      setLinhaSelecionadaId(e.target.value);
+                    }}
                   />
+
+                  <select
+                    value={itemAtual ? String(itemAtual.id) : ""}
+                    onChange={(e) => {
+                      setEqpSelecionado(e.target.value);
+                      setLinhaSelecionadaId(e.target.value);
+                    }}
+                    title="Escolha rápida da lista RMS_OBRAS"
+                  >
+                    {itens.map((r) => (
+                      <option key={r.id} value={String(r.id)}>
+                        ID {r.id} — {r.descricao || "Item"} ({r.patrimonio || "Sem Pat."})
+                      </option>
+                    ))}
+                  </select>
 
                   <label>Cod Barras Selecionado:</label>
                   <input
