@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RMS OBRAS & Etiquetas</title>
+  <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+    body { margin: 0; background: #eef2f6; color: #111; }
+    .topbar {
+      background: #1f497d; color: #fff; padding: 10px 16px;
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .topbar button {
+      background: #365f91; color: #fff; border: 1px solid #8fb3de;
+      padding: 7px 14px; border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .topbar button.active { background: #fff; color: #1f497d; }
+    .container { max-width: 1280px; margin: 16px auto; padding: 0 12px; }
+    .card {
+      background: #fff; border-radius: 8px; padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
+    }
+    .banner {
+      background: #1f497d; color: #fff; text-align: center;
+      font-weight: bold; padding: 8px; font-size: 15px; letter-spacing: 0.5px;
+    }
+    .toolbar-rms {
+      margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .search-box {
+      flex: 1; min-width: 240px; padding: 7px 10px;
+      border: 1px solid #94a3b8; border-radius: 5px; font-size: 13px;
+    }
+    .search-box:focus {
+      border-color: #1f497d; background: #fffef0; outline: none;
+    }
+    .contador-filtro {
+      font-size: 12px; color: #475569; font-weight: bold;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    th {
+      background: #2f5597; color: #fff; padding: 7px 6px;
+      border: 1px solid #cbd5e1; text-align: center;
+    }
+    td { border: 1px solid #cbd5e1; padding: 4px; text-align: center; }
+    td input, td select {
+      width: 100%; border: 1px solid transparent; padding: 4px;
+      font-size: 12px; text-align: center; background: transparent;
+    }
+    td input:focus, td select:focus {
+      border: 1px solid #1f497d; background: #fffef0; outline: none;
+    }
+    .status-baia { background: #76933c !important; color: #fff; font-weight: bold; }
+    .status-semlista { background: #c0504d !important; color: #fff; font-weight: bold; }
+
+    /* Tela Etiqueta */
+    .controls-row {
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .controls-row label { font-weight: bold; font-size: 13px; }
+    .controls-row input, .controls-row select {
+      padding: 6px 10px; border: 1px solid #94a3b8; border-radius: 4px; font-size: 13px;
+    }
+    .hl-yellow { background: #fff2cc !important; font-weight: bold; }
+
+    .etiqueta-box {
+      width: 460px; max-width: 100%; border: 2px solid #000; background: #fff;
+      padding: 6px 8px 0 8px; margin: 8px 0 14px 0;
+    }
+    .etq-obra {
+      text-align: center; font-size: 26px; font-weight: bold;
+      border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;
+    }
+    .etq-barcode {
+      text-align: center; border-bottom: 1px solid #cbd5e1; padding: 4px 0;
+    }
+    .etq-body-row {
+      display: flex; align-items: stretch; justify-content: space-between;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .etq-info { flex: 1; padding: 4px 6px; text-align: center; }
+    .etq-pat { font-size: 15px; font-weight: bold; margin: 2px 0; }
+    .etq-sub { font-size: 11px; margin: 2px 0; }
+    .etq-rm { font-size: 12.5px; font-weight: bold; margin: 2px 0; }
+    .etq-status { font-size: 11px; margin: 2px 0; }
+    .etq-qr-area {
+      width: 108px; display: flex; align-items: center; justify-content: center;
+      border-left: 1px solid #cbd5e1; padding: 4px; background: #fff;
+    }
+    .etq-footer {
+      background: #1f497d; color: #fff; text-align: center;
+      font-weight: bold; font-size: 12px; padding: 5px; margin: 0 -8px;
+    }
+    .btn-print {
+      background: #365f91; color: #fff; border: 2px solid #1f497d;
+      padding: 10px 20px; font-size: 13px; font-weight: bold; font-style: italic;
+      border-radius: 6px; cursor: pointer;
+    }
+    .btn-add {
+      background: #1e7e34; color: #fff; border: none; padding: 7px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .btn-import {
+      background: #b45309; color: #fff; border: none; padding: 7px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .btn-excel {
+      background: #0f766e; color: #fff; border: none; padding: 7px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .btn-reset {
+      background: #64748b; color: #fff; border: none; padding: 7px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .btn-clear {
+      background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 7px 10px;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;
+    }
+    .msg-alerta {
+      margin-top: 8px; padding: 8px 12px; border-radius: 5px;
+      background: #fef3c7; border: 1px solid #f59e0b; font-size: 13px;
+    }
+
+    /* Impressão térmica */
+    @media print {
+      body { background: #fff; margin: 0; }
+      .topbar, .no-print { display: none !important; }
+      .container { margin: 0; padding: 0; max-width: none; }
+      .card { box-shadow: none; padding: 0; margin: 0; border-radius: 0; }
+      .etiqueta-box {
+        margin: 0 auto; width: 100mm; max-width: 100mm;
+        border: 1.5pt solid #000; page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const DADOS_INICIAIS = [
+      { id: 1, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-10", setor: "ENESA", obra: "124", status: "SEPARAÇÃO NA BAIA", rms: "119370", idProduto: "11909" },
+      { id: 2, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "MOUSER", data: "2026-11-17", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11795" },
+      { id: 3, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11909" },
+      { id: 4, patrimonio: "02569-0762", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
+      { id: 5, patrimonio: "02569-1170", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
+      { id: 6, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 10, descricao: "MOUSER", data: "2026-11-23", setor: "ENESA", obra: "129", status: "SEPARAÇÃO NA BAIA", rms: "120012", idProduto: "11795" }
+    ];
+
+    function formatarDataBR(isoDate) {
+      if (!isoDate) return "";
+      const partes = String(isoDate).split("-");
+      if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      return isoDate;
+    }
+
+    function converterDataParaISO(valor) {
+      if (!valor) return hojeISO();
+      if (typeof valor === "number") {
+        const utcDays = Math.floor(valor - 25569);
+        const dt = new Date(utcDays * 86400 * 1000);
+        const yyyy = dt.getUTCFullYear();
+        const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(dt.getUTCDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      }
+      const str = String(valor).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+      const partesBR = str.split("/");
+      if (partesBR.length === 3) {
+        const dd = partesBR[0].padStart(2, "0");
+        const mm = partesBR[1].padStart(2, "0");
+        const yyyy = partesBR[2].length === 2 ? `20${partesBR[2]}` : partesBR[2];
+        return `${yyyy}-${mm}-${dd}`;
+      }
+      return hojeISO();
+    }
+
+    function hojeISO() {
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${d.getFullYear()}-${mm}-${dd}`;
+    }
+
+    function App() {
+      const [aba, setAba] = useState("Etiqueta");
+      const [itens, setItens] = useState(() => {
+        const salvo = localStorage.getItem("rms_obras_itens_v1");
+        return salvo ? JSON.parse(salvo) : DADOS_INICIAIS;
+      });
+      const [pesquisa, setPesquisa] = useState("");
+      const [eqpSelecionado, setEqpSelecionado] = useState(4);
+      const [codBarrasInput, setCodBarrasInput] = useState("");
+      const [aviso, setAviso] = useState("");
+
+      const barcodeRef = useRef(null);
+      const qrRef = useRef(null);
+      const bipInputRef = useRef(null);
+      const fileInputRef = useRef(null);
+
+      useEffect(() => {
+        localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itens));
+      }, [itens]);
+
+      const itemAtual = itens.find((r) => String(r.id) === String(eqpSelecionado)) || null;
+
+      // Filtra por qualquer coluna da linha
+      const termoBusca = pesquisa.trim().toLowerCase();
+      const itensFiltrados = itens
+        .map((row, index) => ({ row, index }))
+        .filter(({ row }) => {
+          if (!termoBusca) return true;
+          const campos = [
+            row.id,
+            row.patrimonio,
+            row.patrimonio2,
+            row.qtd,
+            row.descricao,
+            row.data,
+            formatarDataBR(row.data),
+            row.setor,
+            row.obra,
+            row.status,
+            row.rms,
+            row.idProduto
+          ];
+          return campos.some((val) => String(val ?? "").toLowerCase().includes(termoBusca));
+        });
+
+      // Desenha Code 128 e QR Code sempre que itemAtual ou aba mudar
+      useEffect(() => {
+        if (aba !== "Etiqueta") return;
+
+        if (barcodeRef.current) {
+          barcodeRef.current.innerHTML = "";
+          if (itemAtual) {
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            barcodeRef.current.appendChild(svg);
+            try {
+              JsBarcode(svg, `${itemAtual.id}-${itemAtual.patrimonio}`, {
+                format: "CODE128",
+                width: 1.6,
+                height: 36,
+                displayValue: false,
+                margin: 2
+              });
+            } catch (e) {}
+          }
+        }
+
+        if (qrRef.current) {
+          qrRef.current.innerHTML = "";
+          if (itemAtual) {
+            const textoQR = `PAT: ${itemAtual.patrimonio} | RM: ${itemAtual.rms} | ID: ${itemAtual.idProduto}`;
+            new QRCode(qrRef.current, {
+              text: textoQR,
+              width: 96,
+              height: 96,
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          }
+        }
+      }, [aba, itemAtual]);
+
+      // Lógica igual à célula F1 do VBA: aceita "1-02562-1298", "02562-1298" ou "1"
+      function processarLeituraCodigoBarras(valorBruto) {
+        const lido = String(valorBruto || "").trim();
+        if (!lido) return;
+
+        let achado = null;
+        if (lido.includes("-") && lido.length > 6) {
+          const partes = lido.split("-");
+          if (partes.length >= 3) {
+            const patBusca = `${partes[1]}-${partes[2]}`;
+            achado = itens.find((r) => String(r.patrimonio).trim() === patBusca);
+          }
+          if (!achado && !isNaN(Number(partes[0]))) {
+            achado = itens.find((r) => Number(r.id) === Number(partes[0]));
+          }
+        } else if (lido.includes("-")) {
+          achado = itens.find((r) => String(r.patrimonio).trim() === lido);
+        } else {
+          achado = itens.find((r) => String(r.id).trim() === lido);
+        }
+
+        if (achado) {
+          setEqpSelecionado(achado.id);
+          setAviso("");
+        } else {
+          setAviso(`Código '${lido}' não encontrado na RMS_OBRAS.`);
+        }
+
+        setCodBarrasInput("");
+        setTimeout(() => {
+          if (bipInputRef.current) bipInputRef.current.focus();
+        }, 10);
+      }
+
+      // Lógica da RMS_OBRAS (formatação automática de patrimônio + autopreenchimento)
+      function atualizarCampoItem(index, campo, valor) {
+        setItens((prev) => {
+          const copia = [...prev];
+          const anterior = index > 0 ? copia[index - 1] : null;
+          let novoValor = valor;
+
+          if (campo === "patrimonio") {
+            const limpo = String(valor).trim();
+            if (/^\d{4}$/.test(limpo)) {
+              let prefixo = "02562-";
+              if (anterior && anterior.patrimonio && anterior.patrimonio.includes("-")) {
+                prefixo = anterior.patrimonio.slice(0, anterior.patrimonio.indexOf("-") + 1);
+              }
+              novoValor = `${prefixo}${limpo}`;
+            } else if (/^\d{4,5}$/.test(limpo) && !limpo.includes("-")) {
+              novoValor = limpo.length === 4 ? `0${limpo}-` : `${limpo}-`;
+            }
+
+            if (limpo !== "" && anterior) {
+              if (!copia[index].obra) copia[index].obra = anterior.obra || "";
+              if (!copia[index].status) copia[index].status = anterior.status || "SEPARAÇÃO NA BAIA";
+              if (!copia[index].data) copia[index].data = hojeISO();
+            }
+          }
+
+          copia[index] = { ...copia[index], [campo]: novoValor };
+          return copia;
+        });
+      }
+
+      function adicionarLinha() {
+        setItens((prev) => {
+          const ultimo = prev[prev.length - 1];
+          const proximoId = prev.reduce((max, r) => Math.max(max, Number(r.id) || 0), 0) + 1;
+          return [
+            ...prev,
+            {
+              id: proximoId,
+              patrimonio: "",
+              patrimonio2: "",
+              qtd: 1,
+              descricao: "",
+              data: hojeISO(),
+              setor: ultimo ? ultimo.setor : "ENESA",
+              obra: ultimo ? ultimo.obra : "",
+              status: ultimo ? ultimo.status : "SEPARAÇÃO NA BAIA",
+              rms: ultimo ? ultimo.rms : "",
+              idProduto: ""
+            }
+          ];
+        });
+      }
+
+      // Importa lista a partir de arquivo Excel (.xlsx, .xls, .xlsm, .csv)
+      function importarExcelRMS(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const nomeAba = workbook.SheetNames.includes("RMS_OBRAS")
+              ? "RMS_OBRAS"
+              : workbook.SheetNames[0];
+            const ws = workbook.Sheets[nomeAba];
+            const linhas = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+
+            let idxCabecalho = linhas.findIndex((row) =>
+              row.some((c) => String(c).trim().toLowerCase() === "id") &&
+              row.some((c) => String(c).trim().toLowerCase().includes("patrimonio"))
+            );
+
+            let linhasDados = [];
+            if (idxCabecalho >= 0) {
+              const cab = linhas[idxCabecalho].map((h) => String(h).trim().toLowerCase());
+              const colIdx = (nomes) => cab.findIndex((c) => nomes.some((n) => c.includes(n)));
+
+              const iId = colIdx(["id"]);
+              const iPat = colIdx(["patrimonio2"]) >= 0 && cab.filter((x) => x.includes("patrimonio")).length > 1
+                ? cab.findIndex((x) => x.includes("patrimonio") && !x.includes("2"))
+                : colIdx(["patrimonio"]);
+              const iPat2 = colIdx(["patrimonio2"]);
+              const iQtd = colIdx(["qtd"]);
+              const iDesc = colIdx(["descri"]);
+              const iData = colIdx(["data"]);
+              const iSetor = colIdx(["setor"]);
+              const iObra = colIdx(["obra"]);
+              const iStatus = colIdx(["status"]);
+              const iRms = colIdx(["rms"]);
+              const iIdProd = colIdx(["produto", "id produto"]);
+
+              linhasDados = linhas.slice(idxCabecalho + 1).filter((r) =>
+                r.some((v) => String(v).trim() !== "")
+              ).map((r, pos) => ({
+                id: iId >= 0 && String(r[iId]).trim() !== "" ? Number(r[iId]) || (pos + 1) : (pos + 1),
+                patrimonio: iPat >= 0 ? String(r[iPat]).trim() : "",
+                patrimonio2: iPat2 >= 0 ? String(r[iPat2]).trim() : "",
+                qtd: iQtd >= 0 && r[iQtd] !== "" ? Number(r[iQtd]) || 1 : 1,
+                descricao: iDesc >= 0 ? String(r[iDesc]).trim() : "",
+                data: iData >= 0 ? converterDataParaISO(r[iData]) : hojeISO(),
+                setor: iSetor >= 0 && String(r[iSetor]).trim() !== "" ? String(r[iSetor]).trim() : "ENESA",
+                obra: iObra >= 0 ? String(r[iObra]).trim() : "",
+                status: iStatus >= 0 && String(r[iStatus]).trim() !== "" ? String(r[iStatus]).trim() : "SEPARAÇÃO NA BAIA",
+                rms: iRms >= 0 ? String(r[iRms]).trim() : "",
+                idProduto: iIdProd >= 0 ? String(r[iIdProd]).trim() : ""
+              }));
+            } else {
+              linhasDados = linhas.filter((r) => r.some((v) => String(v).trim() !== "")).map((r, pos) => ({
+                id: String(r[0]).trim() !== "" && !isNaN(Number(r[0])) ? Number(r[0]) : (pos + 1),
+                patrimonio: String(r[1] || "").trim(),
+                patrimonio2: String(r[2] || "").trim(),
+                qtd: r[3] !== "" ? Number(r[3]) || 1 : 1,
+                descricao: String(r[4] || "").trim(),
+                data: converterDataParaISO(r[5]),
+                setor: String(r[7] || r[6] || "ENESA").trim(),
+                obra: String(r[8] || r[7] || "").trim(),
+                status: String(r[9] || r[8] || "SEPARAÇÃO NA BAIA").trim(),
+                rms: String(r[10] || r[9] || "").trim(),
+                idProduto: String(r[11] || r[10] || "").trim()
+              }));
+            }
+
+            if (linhasDados.length === 0) {
+              setAviso("Nenhum item válido encontrado na planilha selecionada.");
+              return;
+            }
+
+            setItens(linhasDados);
+            setEqpSelecionado(linhasDados[0].id);
+            setAviso(`Importados ${linhasDados.length} itens da planilha '${file.name}'.`);
+          } catch (err) {
+            setAviso("Erro ao ler o arquivo Excel. Verifique se o formato é .xlsx, .xls, .xlsm ou .csv.");
+          } finally {
+            event.target.value = "";
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      // Exporta a lista atual para um arquivo Excel (.xlsx) real com a aba RMS_OBRAS
+      function exportarExcelRMS() {
+        const linhasExcel = [
+          ["RELAÇÃO ATENDIMENTO - RMS OBRAS"],
+          [],
+          ["ID", "Patrimonio", "Patrimonio2", "QTD:", "DESCRIÇÃO", "DATA:", "SETOR", "OBRA", "STATUS", "RMS", "ID PRODUTO"],
+          ...itens.map((r) => [
+            r.id,
+            r.patrimonio,
+            r.patrimonio2,
+            Number(r.qtd) || 0,
+            r.descricao,
+            formatarDataBR(r.data),
+            r.setor,
+            r.obra,
+            r.status,
+            r.rms,
+            r.idProduto
+          ])
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(linhasExcel);
+
+        ws["!cols"] = [
+          { wch: 6 },
+          { wch: 18 },
+          { wch: 16 },
+          { wch: 8 },
+          { wch: 24 },
+          { wch: 14 },
+          { wch: 12 },
+          { wch: 10 },
+          { wch: 22 },
+          { wch: 12 },
+          { wch: 14 }
+        ];
+
+        ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "RMS_OBRAS");
+
+        const dataHoje = hojeISO();
+        XLSX.writeFile(wb, `RMS_OBRAS_${dataHoje}.xlsx`);
+      }
+
+      function imprimirEtiqueta() {
+        if (!itemAtual) {
+          alert(`O EQP ${eqpSelecionado} não foi encontrado na aba 'RMS_OBRAS'.`);
+          return;
+        }
+        window.print();
+      }
+
+      return (
+        <div>
+          <div className="topbar">
+            <strong>SISTEMA RMS OBRAS</strong>
+            <button className={aba === "RMS_OBRAS" ? "active" : ""} onClick={() => setAba("RMS_OBRAS")}>
+              RMS_OBRAS
+            </button>
+            <button className={aba === "Etiqueta" ? "active" : ""} onClick={() => setAba("Etiqueta")}>
+              Etiqueta
+            </button>
+          </div>
+
+          <div className="container">
+            {aba === "RMS_OBRAS" && (
+              <div className="card">
+                <div className="banner">RELAÇÃO ATENDIMENTO - RMS OBRAS</div>
+                <div className="toolbar-rms">
+                  <input
+                    type="text"
+                    className="search-box"
+                    placeholder="Pesquisar em qualquer coluna (ID, Patrimônio, Descrição, Obra, RMS, ID Produto, Status...)"
+                    value={pesquisa}
+                    onChange={(e) => setPesquisa(e.target.value)}
+                  />
+                  {pesquisa && (
+                    <button className="btn-clear" onClick={() => setPesquisa("")}>
+                      Limpar
+                    </button>
+                  )}
+                  <span className="contador-filtro">
+                    Exibindo {itensFiltrados.length} de {itens.length}
+                  </span>
+                </div>
+
+                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button className="btn-add" onClick={adicionarLinha}>+ Nova Linha</button>
+                  <button className="btn-import" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+                    Importar Excel (.xlsx)
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls,.xlsm,.csv"
+                    style={{ display: "none" }}
+                    onChange={importarExcelRMS}
+                  />
+                  <button className="btn-excel" onClick={exportarExcelRMS}>Exportar Excel (.xlsx)</button>
+                  <button
+                    className="btn-reset"
+                    onClick={() => {
+                      localStorage.removeItem("rms_obras_itens_v1");
+                      setItens(DADOS_INICIAIS);
+                      setPesquisa("");
+                      setAviso("");
+                    }}
+                  >
+                    Restaurar Exemplo Inicial
+                  </button>
+                </div>
+
+                {aviso && <div className="msg-alerta">{aviso}</div>}
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Patrimonio</th>
+                      <th>Patrimonio2</th>
+                      <th>QTD:</th>
+                      <th>DESCRIÇÃO</th>
+                      <th>DATA:</th>
+                      <th>SETOR</th>
+                      <th>OBRA</th>
+                      <th>STATUS</th>
+                      <th>RMS</th>
+                      <th>ID PRODUTO</th>
+                      <th>Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itensFiltrados.map(({ row, index }) => (
+                      <tr key={row.id}>
+                        <td>{row.id}</td>
+                        <td>
+                          <input
+                            value={row.patrimonio}
+                            placeholder="Ex: 1450 ou 02569-0762"
+                            onChange={(e) => atualizarCampoItem(index, "patrimonio", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            value={row.patrimonio2}
+                            onChange={(e) => atualizarCampoItem(index, "patrimonio2", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            value={row.qtd}
+                            onChange={(e) => atualizarCampoItem(index, "qtd", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            value={row.descricao}
+                            onChange={(e) => atualizarCampoItem(index, "descricao", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="date"
+                            value={row.data}
+                            onChange={(e) => atualizarCampoItem(index, "data", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            value={row.setor}
+                            onChange={(e) => atualizarCampoItem(index, "setor", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            value={row.obra}
+                            onChange={(e) => atualizarCampoItem(index, "obra", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <select
+                            className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
+                            value={row.status}
+                            onChange={(e) => atualizarCampoItem(index, "status", e.target.value)}
+                          >
+                            <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
+                            <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            value={row.rms}
+                            onChange={(e) => atualizarCampoItem(index, "rms", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            value={row.idProduto}
+                            onChange={(e) => atualizarCampoItem(index, "idProduto", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => {
+                              setEqpSelecionado(row.id);
+                              setAba("Etiqueta");
+                            }}
+                          >
+                            Etiqueta
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {itensFiltrados.length === 0 && (
+                      <tr>
+                        <td colSpan="12" style={{ padding: 14, color: "#64748b" }}>
+                          Nenhum registro encontrado para "{pesquisa}".
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {aba === "Etiqueta" && (
+              <div className="card">
+                <div className="controls-row no-print">
+                  <label>EQP Selecionado:</label>
+                  <input
+                    type="number"
+                    className="hl-yellow"
+                    style={{ width: 70, textAlign: "center" }}
+                    value={eqpSelecionado}
+                    onChange={(e) => setEqpSelecionado(e.target.value)}
+                  />
+
+                  <label>Cod Barras Selecionado:</label>
+                  <input
+                    ref={bipInputRef}
+                    className="hl-yellow"
+                    style={{ width: 190 }}
+                    placeholder="Bipe ou digite e dê Enter"
+                    value={codBarrasInput}
+                    onChange={(e) => setCodBarrasInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        processarLeituraCodigoBarras(codBarrasInput);
+                      }
+                    }}
+                  />
+                  <button onClick={() => processarLeituraCodigoBarras(codBarrasInput)}>Buscar</button>
+                </div>
+
+                {aviso && <div className="msg-alerta no-print">{aviso}</div>}
+
+                {itemAtual ? (
+                  <div className="etiqueta-box">
+                    <div className="etq-obra">OBRA: {itemAtual.obra}</div>
+                    <div className="etq-barcode" ref={barcodeRef}></div>
+                    <div className="etq-body-row">
+                      <div className="etq-info">
+                        <div className="etq-pat">Patrimônio: {itemAtual.patrimonio}</div>
+                        <div className="etq-sub">
+                          QTD: {itemAtual.qtd} ( {itemAtual.descricao}) DATA: {formatarDataBR(itemAtual.data)} / {itemAtual.setor}
+                        </div>
+                        <div className="etq-rm">
+                          RM: {itemAtual.rms} | ID do Produto: {itemAtual.idProduto}
+                        </div>
+                        <div className="etq-status">STATUS: {itemAtual.status}</div>
+                      </div>
+                      <div className="etq-qr-area">
+                        <div ref={qrRef}></div>
+                      </div>
+                    </div>
+                    <div className="etq-footer">★ CONFERIDO POR EMERSON ★</div>
+                  </div>
+                ) : (
+                  <div className="msg-alerta">EQP "{eqpSelecionado}" não encontrado na RMS_OBRAS.</div>
+                )}
+
+                <div className="no-print">
+                  <button className="btn-print" onClick={imprimirEtiqueta}>
+                    IMPRIMIR EQP ETIQUETA
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
