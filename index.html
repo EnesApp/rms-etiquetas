@@ -328,21 +328,10 @@
       return !lower.includes("não relacionado") && !lower.includes("nao relacionado") && !lower.includes("não informado") && !lower.includes("nao informado");
     }
 
-    // Extrai PAT, RM e ID (ID do Produto) de um texto de QR Code ou URL
+    // Extrai PAT e RM do texto do QR Code (e aceita ID caso venha de QR antigo)
     function parsearDadosQR(textoBruto) {
       const raw = String(textoBruto || "").trim();
       if (!raw) return { pat: "", rm: "", idProd: "", termoFiltro: "" };
-
-      try {
-        if (raw.startsWith("http://") || raw.startsWith("https://")) {
-          const url = new URL(raw);
-          const patUrl = (url.searchParams.get("pat") || "").trim();
-          const rmUrl = (url.searchParams.get("rm") || "").trim();
-          const idProdUrl = (url.searchParams.get("idProd") || url.searchParams.get("id") || "").trim();
-          const termoFiltro = idProdUrl || patUrl || rmUrl || raw;
-          return { pat: patUrl, rm: rmUrl, idProd: idProdUrl, termoFiltro };
-        }
-      } catch (e) {}
 
       const patMatch = raw.match(/PAT\s*:\s*([^|]+)/i);
       const rmMatch = raw.match(/RM\s*:\s*([^|]+)/i);
@@ -353,7 +342,7 @@
       const idProd = idMatch ? idMatch[1].trim() : "";
 
       const patLimpo = temPatrimonioValido(pat) ? pat : "";
-      const termoFiltro = idProd || patLimpo || rm || raw;
+      const termoFiltro = patLimpo || rm || idProd || raw;
 
       return { pat: patLimpo, rm, idProd, termoFiltro };
     }
@@ -382,28 +371,15 @@
         localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itens));
       }, [itens]);
 
-      // Lê parâmetros da URL caso o celular abra o link vindo do QR Code
-      useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const patParam = (params.get("pat") || "").trim();
-        const rmParam = (params.get("rm") || "").trim();
-        const idProdParam = (params.get("idProd") || params.get("id") || "").trim();
-
-        if (patParam || rmParam || idProdParam) {
-          setAba("RMS_OBRAS");
-          aplicarBuscaESelecao({ pat: patParam, rm: rmParam, idProd: idProdParam }, itens);
-        }
-      }, []);
-
       function aplicarBuscaESelecao(dadosQR, listaItens) {
         const { pat, rm, idProd, termoFiltro } = dadosQR;
-        const busca = termoFiltro || idProd || pat || rm;
+        const busca = termoFiltro || pat || rm || idProd;
         setPesquisa(busca);
 
         const encontrado = listaItens.find((r) => {
-          if (idProd && String(r.idProduto || "").trim().toLowerCase() === idProd.toLowerCase()) return true;
           if (pat && String(r.patrimonio || "").trim().toLowerCase() === pat.toLowerCase()) return true;
           if (rm && String(r.rms || "").trim().toLowerCase() === rm.toLowerCase()) return true;
+          if (idProd && String(r.idProduto || "").trim().toLowerCase() === idProd.toLowerCase()) return true;
           return false;
         });
 
@@ -412,7 +388,7 @@
           setEqpSelecionado(encontrado.id);
           setAviso("");
           setStatusLeitura(
-            `Selecionado: EQP ${encontrado.id} — ${encontrado.descricao || "Item"} (ID Produto: ${encontrado.idProduto || "-"} | PAT: ${encontrado.patrimonio || "-"} | RM: ${encontrado.rms || "-"})`
+            `Selecionado: EQP ${encontrado.id} — ${encontrado.descricao || "Item"} (PAT: ${encontrado.patrimonio || "-"} | RM: ${encontrado.rms || "-"})`
           );
         } else {
           setAviso(`Filtro aplicado com "${busca}", mas nenhum item exato foi encontrado na lista atual.`);
@@ -520,19 +496,14 @@
           qrRef.current.innerHTML = "";
           if (itemAtual) {
             const patTexto = patValido ? String(itemAtual.patrimonio).trim() : "Não Relacionado";
-            const baseUrl = window.location.href.split("?")[0];
-            const query = new URLSearchParams({
-              pat: patValido ? patTexto : "",
-              rm: String(itemAtual.rms || "").trim(),
-              idProd: String(itemAtual.idProduto || "").trim()
-            });
-            const textoQR = `${baseUrl}?${query.toString()}`;
+            const rmTexto = String(itemAtual.rms || "").trim();
+            const textoQR = `PAT: ${patTexto} | RM: ${rmTexto}`;
             try {
               new QRCode(qrRef.current, {
                 text: textoQR,
                 width: 96,
                 height: 96,
-                correctLevel: QRCode.CorrectLevel.M
+                correctLevel: QRCode.CorrectLevel.L
               });
             } catch (e) {}
           }
