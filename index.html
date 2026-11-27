@@ -11,7 +11,7 @@
   />
   <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode + Supabase via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -35,7 +35,7 @@
       background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
       font-weight: bold; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
     }
-    .container { max-width: 1380px; margin: 14px auto; padding: 0 10px; }
+    .container { max-width: 1580px; margin: 14px auto; padding: 0 10px; }
     .card {
       background: #fff; border-radius: 8px; padding: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
@@ -82,52 +82,65 @@
     }
     table {
       width: 100%;
-      min-width: 1180px;
+      min-width: 1060px;
       border-collapse: collapse;
-      font-size: 12.5px;
+      font-size: 12px;
       margin-top: 0;
     }
     th {
-      background: #2f5597; color: #fff; padding: 8px 6px;
+      background: #2f5597; color: #fff; padding: 7px 4px;
       border: 1px solid #cbd5e1; text-align: center; white-space: nowrap;
     }
     td {
-      border: 1px solid #cbd5e1; padding: 4px; text-align: center;
-      vertical-align: middle;
+      border: 1px solid #cbd5e1; padding: 3px; text-align: center;
+      vertical-align: middle; background: #fff;
+    }
+    tr.linha-selecionada td {
+      background: #fef9c3 !important;
     }
     tr.linha-selecionada {
-      background: #fef9c3 !important;
       outline: 2px solid #eab308;
     }
     td input, td select {
       width: 100%; min-width: 100%; border: 1px solid #e2e8f0; border-radius: 3px;
-      padding: 6px 5px; font-size: 12.5px; text-align: center; background: #fff;
+      padding: 5px 4px; font-size: 12px; text-align: center; background: #fff;
       color: #0f172a;
     }
     td input:focus, td select:focus {
       border: 1px solid #1f497d; background: #fffef0; outline: none;
     }
 
-    /* Larguras mínimas revisadas coluna por coluna para não cortar caracteres */
-    .col-id { min-width: 56px; width: 56px; font-weight: bold; }
-    .col-pat { min-width: 122px; }
-    .col-pat2 { min-width: 122px; }
-    .col-tipo { min-width: 78px; }
-    .col-modelo { min-width: 155px; }
-    .col-proc { min-width: 125px; }
+    /* Larguras otimizadas para caber inteiro no PC sem cortar a coluna Ação */
+    .col-id { min-width: 44px; width: 44px; font-weight: bold; }
+    .col-pat { min-width: 104px; }
+    .col-pat2 { min-width: 104px; }
+    .col-tipo { min-width: 62px; }
+    .col-modelo { min-width: 138px; }
+    .col-proc { min-width: 102px; }
     .col-ram { min-width: 96px; }
-    .col-armaz { min-width: 145px; }
-    .col-local { min-width: 96px; }
-    .col-status-inv { min-width: 175px; }
-    .col-data { min-width: 126px; }
-    .col-qtd { min-width: 72px; }
-    .col-desc { min-width: 150px; }
-    .col-setor { min-width: 95px; }
-    .col-obra { min-width: 88px; }
-    .col-status-rms { min-width: 165px; }
-    .col-rms { min-width: 95px; }
-    .col-idprod { min-width: 105px; }
-    .col-acao { min-width: 92px; }
+    .col-armaz { min-width: 130px; }
+    .col-local { min-width: 78px; }
+    .col-status-inv { min-width: 122px; }
+    .col-data { min-width: 118px; }
+    .col-qtd { min-width: 60px; }
+    .col-desc { min-width: 135px; }
+    .col-setor { min-width: 82px; }
+    .col-obra { min-width: 74px; }
+    .col-status-rms { min-width: 158px; }
+    .col-rms { min-width: 84px; }
+    .col-idprod { min-width: 92px; }
+    .col-acao {
+      min-width: 86px;
+      width: 86px;
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      box-shadow: -2px 0 4px rgba(15, 23, 42, 0.08);
+    }
+    th.col-acao {
+      background: #2f5597;
+      z-index: 3;
+    }
 
     .acao-select {
       border: 1px solid #94a3b8 !important;
@@ -136,7 +149,7 @@
       font-weight: bold;
       color: #0f172a;
       cursor: pointer;
-      padding: 6px 4px !important;
+      padding: 5px 3px !important;
     }
     .status-baia { background: #76933c !important; color: #fff !important; font-weight: bold; }
     .status-semlista { background: #c0504d !important; color: #fff !important; font-weight: bold; }
@@ -265,6 +278,7 @@
       .db-status { margin-left: 0; font-size: 11px; }
       .banner { font-size: 13.5px; }
       td input, td select { font-size: 13px; padding: 7px 6px; }
+      .col-acao { position: static; box-shadow: none; }
     }
 
     /* Impressão térmica exata 102mm x 50mm em 1 única etiqueta */
@@ -403,25 +417,15 @@
       }
     }
 
-    const INVENTARIO_INICIAL = [
-      { id: 1, patrimonio: "02562-1298", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "Sem Armazenamento", localEqp: "TI.09A2", status: "Em estoque Funcionando", data: "2026-10-29" },
-      { id: 2, patrimonio: "02562-0862", patrimonio2: "02562-0118", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "1TB", localEqp: "TI.09A2", status: "Em estoque Funcionando", data: "2026-10-29" },
-      { id: 3, patrimonio: "02562-1152", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "Sem Memoria", armazenamento: "Sem Armazenamento", localEqp: "TI.09A2", status: "Em estoque", data: "2026-11-04" },
-      { id: 4, patrimonio: "02562-1698", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "6GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Em estoque Inoperante", data: "2026-11-04" },
-      { id: 5, patrimonio: "02562-1329", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Em estoque Funcionando", data: "2026-11-04" },
-      { id: 6, patrimonio: "02562-1119", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Em estoque Funcionando", data: "2026-11-19" },
-      { id: 7, patrimonio: "02562-1122", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "4GB", armazenamento: "1TB", localEqp: "TI.09A2", status: "Em estoque Funcionando", data: "2026-11-19" },
-      { id: 8, patrimonio: "02562-1237", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Em estoque Funcionando", data: "2026-11-23" }
-    ];
+    const INVENTARIO_INICIAL = [];
 
-    const RMS_INICIAL = [
-      { id: 1, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-10", setor: "ENESA", obra: "124", status: "SEPARAÇÃO NA BAIA", rms: "119370", idProduto: "11909" },
-      { id: 2, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "MOUSER", data: "2026-11-17", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11795" },
-      { id: 3, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11909" },
-      { id: 4, patrimonio: "02569-0762", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
-      { id: 5, patrimonio: "02569-1170", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
-      { id: 6, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 10, descricao: "MOUSER", data: "2026-11-23", setor: "ENESA", obra: "129", status: "SEPARAÇÃO NA BAIA", rms: "120012", idProduto: "11795" }
-    ];
+    const RMS_INICIAL = [];
+
+    function normalizarStatusInv(valor) {
+      const txt = String(valor || "").trim().toLowerCase();
+      if (txt.includes("inoperante")) return "Inoperante";
+      return "Funcionando";
+    }
 
     function carregarConfigSupabase() {
       try {
@@ -446,7 +450,7 @@
         const salvo = localStorage.getItem(chave);
         if (!salvo) return padrao;
         const parsed = JSON.parse(salvo);
-        return Array.isArray(parsed) && parsed.length > 0 ? parsed : padrao;
+        return Array.isArray(parsed) ? parsed : padrao;
       } catch (e) {
         return padrao;
       }
@@ -541,7 +545,7 @@
         patrimonio: row.patrimonio || "Não Relacionado",
         linhaResumo: `${row.tipo || "EQP"}: ${row.modelo || ""} (${row.processador || ""} | ${row.ram || ""} | ${row.armazenamento || ""})`,
         linhaDetalhe: `LOCAL: ${row.localEqp || "TI"} | DATA: ${formatarDataBR(row.data)}`,
-        status: formatarStatusEtiqueta(row.status),
+        status: formatarStatusEtiqueta(normalizarStatusInv(row.status)),
         qrTexto: `PAT: ${temPatrimonioValido(row.patrimonio) ? String(row.patrimonio).trim() : "Não Relacionado"} | EQP: ${row.id}`
       };
     }
@@ -570,7 +574,7 @@
         ram: String(r.ram || ""),
         armazenamento: String(r.armazenamento || ""),
         local_eqp: String(r.localEqp || "TI.09A2"),
-        status: String(r.status || ""),
+        status: normalizarStatusInv(r.status),
         data: String(r.data || ""),
         updated_at: new Date().toISOString()
       };
@@ -587,7 +591,7 @@
         ram: row.ram || "",
         armazenamento: row.armazenamento || "",
         localEqp: row.local_eqp || "TI.09A2",
-        status: row.status || "",
+        status: normalizarStatusInv(row.status),
         data: row.data || hojeISO()
       };
     }
@@ -637,7 +641,12 @@
         configSupa.url && configSupa.anonKey ? "Sincronizado" : "Local"
       );
 
-      const [inventario, setInventario] = useState(() => carregarListaSegura("inventario_ti_itens_v1", INVENTARIO_INICIAL));
+      const [inventario, setInventario] = useState(() =>
+        carregarListaSegura("inventario_ti_itens_v1", INVENTARIO_INICIAL).map((item) => ({
+          ...item,
+          status: normalizarStatusInv(item.status)
+        }))
+      );
       const [itensRms, setItensRms] = useState(() => carregarListaSegura("rms_obras_itens_v1", RMS_INICIAL));
 
       const [pesquisaInv, setPesquisaInv] = useState("");
@@ -1035,9 +1044,13 @@
               if (!copia[index].modelo) copia[index].modelo = anterior.modelo || "";
               if (!copia[index].processador) copia[index].processador = anterior.processador || "";
               if (!copia[index].localEqp) copia[index].localEqp = anterior.localEqp || "TI.09A2";
-              if (!copia[index].status) copia[index].status = anterior.status || "Em estoque Funcionando";
+              if (!copia[index].status) copia[index].status = normalizarStatusInv(anterior.status);
               if (!copia[index].data) copia[index].data = hojeISO();
             }
+          }
+
+          if (campo === "status") {
+            novoValor = normalizarStatusInv(valor);
           }
 
           copia[index] = { ...copia[index], [campo]: novoValor };
@@ -1066,10 +1079,10 @@
             ram: "",
             armazenamento: "",
             localEqp: ultimo ? ultimo.localEqp : "TI.09A2",
-            status: ultimo ? ultimo.status : "Em estoque Funcionando",
+            status: ultimo ? normalizarStatusInv(ultimo.status) : "Funcionando",
             data: hojeISO()
           };
-          const atualizada = [...prev, novaLinha];
+          const atualizada = [novaLinha, ...prev];
           inventarioRef.current = atualizada;
           try {
             localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(atualizada));
@@ -1160,7 +1173,7 @@
                   ram: iRam >= 0 ? String(r[iRam]).trim() : "",
                   armazenamento: iArm >= 0 ? String(r[iArm]).trim() : "",
                   localEqp: iLocal >= 0 ? String(r[iLocal]).trim() : "TI.09A2",
-                  status: iStatus >= 0 ? String(r[iStatus]).trim() : "Em estoque Funcionando",
+                  status: iStatus >= 0 ? normalizarStatusInv(r[iStatus]) : "Funcionando",
                   data: iData >= 0 ? converterDataParaISO(r[iData]) : hojeISO()
                 }));
             }
@@ -1192,14 +1205,14 @@
           ["EQP", "Patrimonio", "Patrimonio2", "Tipo", "modelo", "Processador", "Ram", "Armazenamento", "Local EQP", "Status", "Data"],
           ...inventario.map((r) => [
             r.id, r.patrimonio, r.patrimonio2, r.tipo, r.modelo,
-            r.processador, r.ram, r.armazenamento, r.localEqp, r.status, formatarDataBR(r.data)
+            r.processador, r.ram, r.armazenamento, r.localEqp, normalizarStatusInv(r.status), formatarDataBR(r.data)
           ])
         ];
 
         const ws = XLSX.utils.aoa_to_sheet(linhasExcel);
         ws["!cols"] = [
           { wch: 6 }, { wch: 16 }, { wch: 16 }, { wch: 10 }, { wch: 24 },
-          { wch: 16 }, { wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 24 }, { wch: 13 }
+          { wch: 16 }, { wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 18 }, { wch: 13 }
         ];
         ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }];
 
@@ -1253,7 +1266,7 @@
             rms: ultimo ? ultimo.rms : "",
             idProduto: ""
           };
-          const atualizada = [...prev, novaLinha];
+          const atualizada = [novaLinha, ...prev];
           itensRmsRef.current = atualizada;
           try {
             localStorage.setItem("rms_obras_itens_v1", JSON.stringify(atualizada));
@@ -1649,6 +1662,7 @@
                     <tbody>
                       {inventarioFiltrado.map(({ row, index }) => {
                         const selecionada = String(row.id) === String(linhaSelecionadaInv);
+                        const statusAtual = normalizarStatusInv(row.status);
                         return (
                           <tr
                             key={row.id}
@@ -1710,10 +1724,14 @@
                               />
                             </td>
                             <td className="col-status-inv">
-                              <input
-                                value={row.status}
+                              <select
+                                className={statusAtual === "Inoperante" ? "status-semlista" : "status-baia"}
+                                value={statusAtual}
                                 onChange={(e) => atualizarCampoInv(index, "status", e.target.value)}
-                              />
+                              >
+                                <option value="Funcionando">Funcionando</option>
+                                <option value="Inoperante">Inoperante</option>
+                              </select>
                             </td>
                             <td className="col-data">
                               <input
