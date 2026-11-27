@@ -1942,9 +1942,11 @@
                                 className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
                                 value={row.status}
                                 onChange={(e) => atualizarCampoRms(index, "status", e.target.value)}
-                              >
-                                <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
+                              >                               
                                 <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
+                                <option value="SEPARAÇÃO COM LISTA">SEPARAÇÃO COM LISTA</option>
+                                <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
+
                               </select>
                             </td>
                             <td className="col-rms">
@@ -2088,3 +2090,5 @@
   </script>
 </body>
 </html>
+
+
