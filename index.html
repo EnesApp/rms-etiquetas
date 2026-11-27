@@ -151,9 +151,23 @@
       cursor: pointer;
       padding: 5px 3px !important;
     }
-    .status-baia { background: #76933c !important; color: #fff !important; font-weight: bold; }
-    .status-semlista { background: #c0504d !important; color: #fff !important; font-weight: bold; }
+.status-baia {
+  background: #76933c !important;
+  color: #fff !important;
+  font-weight: bold;
+}
 
+.status-comlista {
+  background: #f59e0b !important;
+  color: #fff !important;
+  font-weight: bold;
+}
+
+.status-semlista {
+  background: #c0504d !important;
+  color: #fff !important;
+  font-weight: bold;
+}
     /* Modal Supabase */
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
@@ -1939,14 +1953,19 @@
                             </td>
                             <td className="col-status-rms">
                               <select
-                                className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
+                                className={
+  row.status === "SEPARAÇÃO SEM LISTA"
+    ? "status-semlista"
+    : row.status === "SEPARAÇÃO COM LISTA"
+    ? "status-comlista"
+    : "status-baia"
+}
                                 value={row.status}
                                 onChange={(e) => atualizarCampoRms(index, "status", e.target.value)}
                               >                               
                                 <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
                                 <option value="SEPARAÇÃO COM LISTA">SEPARAÇÃO COM LISTA</option>
                                 <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
-
                               </select>
                             </td>
                             <td className="col-rms">
