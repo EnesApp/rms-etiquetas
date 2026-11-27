@@ -17,33 +17,34 @@
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; background: #eef2f6; color: #111; }
     .topbar {
-      background: #1f497d; color: #fff; padding: 10px 16px;
-      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      background: #1f497d; color: #fff; padding: 10px 14px;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
     }
     .topbar button {
       background: #365f91; color: #fff; border: 1px solid #8fb3de;
-      padding: 7px 14px; border-radius: 5px; cursor: pointer; font-weight: bold;
+      padding: 7px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px;
     }
     .topbar button.active { background: #fff; color: #1f497d; }
     .db-status {
       margin-left: auto; font-size: 12px; padding: 5px 10px; border-radius: 999px;
       background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
-      font-weight: bold;
+      font-weight: bold; white-space: nowrap;
     }
-    .container { max-width: 1360px; margin: 16px auto; padding: 0 12px; }
+    .container { max-width: 1380px; margin: 14px auto; padding: 0 10px; }
     .card {
-      background: #fff; border-radius: 8px; padding: 14px;
+      background: #fff; border-radius: 8px; padding: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
     }
     .banner {
       background: #1f497d; color: #fff; text-align: center;
-      font-weight: bold; padding: 8px; font-size: 15px; letter-spacing: 0.5px;
+      font-weight: bold; padding: 9px 8px; font-size: 15px; letter-spacing: 0.4px;
+      border-radius: 4px;
     }
     .toolbar-rms {
       margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
     }
     .search-box {
-      flex: 1; min-width: 240px; padding: 7px 10px;
+      flex: 1; min-width: 220px; padding: 8px 10px;
       border: 1px solid #94a3b8; border-radius: 5px; font-size: 13px;
     }
     .search-box:focus {
@@ -52,23 +53,65 @@
     .contador-filtro {
       font-size: 12px; color: #475569; font-weight: bold;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-    th {
-      background: #2f5597; color: #fff; padding: 7px 5px;
-      border: 1px solid #cbd5e1; text-align: center;
+
+    /* Wrapper responsivo da tabela com rolagem lateral suave */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
     }
-    td { border: 1px solid #cbd5e1; padding: 4px; text-align: center; }
+    table {
+      width: 100%;
+      min-width: 1180px;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-top: 0;
+    }
+    th {
+      background: #2f5597; color: #fff; padding: 8px 6px;
+      border: 1px solid #cbd5e1; text-align: center; white-space: nowrap;
+    }
+    td {
+      border: 1px solid #cbd5e1; padding: 4px; text-align: center;
+      vertical-align: middle;
+    }
     tr.linha-selecionada {
       background: #fef9c3 !important;
       outline: 2px solid #eab308;
     }
     td input, td select {
-      width: 100%; border: 1px solid transparent; padding: 4px;
-      font-size: 12px; text-align: center; background: transparent;
+      width: 100%; min-width: 100%; border: 1px solid #e2e8f0; border-radius: 3px;
+      padding: 6px 5px; font-size: 12.5px; text-align: center; background: #fff;
+      color: #0f172a;
     }
     td input:focus, td select:focus {
       border: 1px solid #1f497d; background: #fffef0; outline: none;
     }
+
+    /* Larguras mínimas revisadas coluna por coluna para não cortar caracteres */
+    .col-id { min-width: 56px; width: 56px; font-weight: bold; }
+    .col-pat { min-width: 122px; }
+    .col-pat2 { min-width: 122px; }
+    .col-tipo { min-width: 78px; }
+    .col-modelo { min-width: 155px; }
+    .col-proc { min-width: 125px; }
+    .col-ram { min-width: 96px; }
+    .col-armaz { min-width: 145px; }
+    .col-local { min-width: 96px; }
+    .col-status-inv { min-width: 175px; }
+    .col-data { min-width: 126px; }
+    .col-qtd { min-width: 72px; }
+    .col-desc { min-width: 150px; }
+    .col-setor { min-width: 95px; }
+    .col-obra { min-width: 88px; }
+    .col-status-rms { min-width: 165px; }
+    .col-rms { min-width: 95px; }
+    .col-idprod { min-width: 105px; }
+    .col-acao { min-width: 92px; }
+
     .acao-select {
       border: 1px solid #94a3b8 !important;
       border-radius: 4px;
@@ -76,10 +119,10 @@
       font-weight: bold;
       color: #0f172a;
       cursor: pointer;
-      padding: 4px 6px !important;
+      padding: 6px 4px !important;
     }
-    .status-baia { background: #76933c !important; color: #fff; font-weight: bold; }
-    .status-semlista { background: #c0504d !important; color: #fff; font-weight: bold; }
+    .status-baia { background: #76933c !important; color: #fff !important; font-weight: bold; }
+    .status-semlista { background: #c0504d !important; color: #fff !important; font-weight: bold; }
 
     /* Modal Supabase */
     .modal-backdrop {
@@ -112,11 +155,11 @@
 
     /* Tela Etiqueta */
     .controls-row {
-      display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;
     }
     .controls-row label { font-weight: bold; font-size: 13px; }
     .controls-row input, .controls-row select {
-      padding: 6px 10px; border: 1px solid #94a3b8; border-radius: 4px; font-size: 13px;
+      padding: 7px 10px; border: 1px solid #94a3b8; border-radius: 4px; font-size: 13px; max-width: 100%;
     }
     .hl-yellow { background: #fff2cc !important; font-weight: bold; }
 
@@ -166,27 +209,27 @@
       border-radius: 6px; cursor: pointer;
     }
     .btn-cam {
-      background: #1d4ed8; color: #fff; border: none; padding: 7px 12px;
-      border-radius: 5px; cursor: pointer; font-weight: bold;
+      background: #1d4ed8; color: #fff; border: none; padding: 8px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12.5px;
     }
     .btn-add {
-      background: #1e7e34; color: #fff; border: none; padding: 7px 12px;
-      border-radius: 5px; cursor: pointer; font-weight: bold;
+      background: #1e7e34; color: #fff; border: none; padding: 8px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12.5px;
     }
     .btn-import {
-      background: #b45309; color: #fff; border: none; padding: 7px 12px;
-      border-radius: 5px; cursor: pointer; font-weight: bold;
+      background: #b45309; color: #fff; border: none; padding: 8px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12.5px;
     }
     .btn-excel {
-      background: #0f766e; color: #fff; border: none; padding: 7px 12px;
-      border-radius: 5px; cursor: pointer; font-weight: bold;
+      background: #0f766e; color: #fff; border: none; padding: 8px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12.5px;
     }
     .btn-reset {
-      background: #64748b; color: #fff; border: none; padding: 7px 12px;
-      border-radius: 5px; cursor: pointer; font-weight: bold;
+      background: #64748b; color: #fff; border: none; padding: 8px 12px;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12.5px;
     }
     .btn-clear {
-      background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 7px 10px;
+      background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 8px 10px;
       border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;
     }
     .msg-alerta {
@@ -196,6 +239,15 @@
     .msg-sucesso {
       margin-top: 8px; padding: 8px 12px; border-radius: 5px;
       background: #dcfce7; border: 1px solid #22c55e; color: #14532d; font-size: 13px; font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .topbar { padding: 8px 10px; gap: 6px; }
+      .topbar strong { width: 100%; font-size: 14px; }
+      .topbar button { padding: 6px 10px; font-size: 12px; }
+      .db-status { margin-left: 0; font-size: 11px; }
+      .banner { font-size: 13.5px; }
+      td input, td select { font-size: 13px; padding: 7px 6px; }
     }
 
     /* Impressão térmica exata 102mm x 50mm em 1 única etiqueta */
@@ -496,7 +548,6 @@
       };
     }
 
-    // Mapeamento app <-> PostgreSQL Supabase
     function invParaDb(r) {
       return {
         id: Number(r.id),
@@ -600,6 +651,8 @@
       const [cameraAtiva, setCameraAtiva] = useState(false);
 
       const supabaseRef = useRef(null);
+      const inventarioRef = useRef(inventario);
+      const itensRmsRef = useRef(itensRms);
       const barcodeRef = useRef(null);
       const qrRef = useRef(null);
       const bipInputRef = useRef(null);
@@ -607,20 +660,43 @@
       const fileRmsRef = useRef(null);
       const scannerInstanceRef = useRef(null);
 
-      // LocalStorage sempre atualizado
       useEffect(() => {
+        inventarioRef.current = inventario;
         try {
           localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(inventario));
         } catch (e) {}
       }, [inventario]);
 
       useEffect(() => {
+        itensRmsRef.current = itensRms;
         try {
           localStorage.setItem("rms_obras_itens_v1", JSON.stringify(itensRms));
         } catch (e) {}
       }, [itensRms]);
 
-      // Inicializa cliente Supabase, carrega/semeia tabelas e ativa tempo real
+      async function lerApenasDoSupabase(client) {
+        const [resInv, resRms] = await Promise.all([
+          client.from("inventario_ti").select("*").order("id", { ascending: true }),
+          client.from("rms_obras").select("*").order("id", { ascending: true })
+        ]);
+        if (resInv.error) throw resInv.error;
+        if (resRms.error) throw resRms.error;
+
+        const listaInv = Array.isArray(resInv.data) ? resInv.data.map(dbParaInv) : [];
+        const listaRms = Array.isArray(resRms.data) ? resRms.data.map(dbParaRms) : [];
+
+        if (listaInv.length > 0) {
+          setInventario(listaInv);
+          setLinhaSelecionadaInv((prev) => listaInv.some((x) => String(x.id) === String(prev)) ? prev : listaInv[0].id);
+        }
+        if (listaRms.length > 0) {
+          setItensRms(listaRms);
+          setLinhaSelecionadaRms((prev) => listaRms.some((x) => String(x.id) === String(prev)) ? prev : listaRms[0].id);
+        }
+        return { listaInv, listaRms };
+      }
+
+      // Inicializa cliente Supabase, semeia se vazio e escuta mudanças remotas
       useEffect(() => {
         if (!configSupa.url || !configSupa.anonKey || typeof window.supabase === "undefined") {
           supabaseRef.current = null;
@@ -631,16 +707,36 @@
         try {
           const client = window.supabase.createClient(configSupa.url, configSupa.anonKey);
           supabaseRef.current = client;
-          setStatusNuvem("Supabase Conectado");
-          sincronizarComSupabase(client, false, true);
+          setStatusNuvem("Conectando Supabase...");
+
+          (async () => {
+            try {
+              const { listaInv, listaRms } = await lerApenasDoSupabase(client);
+              if (listaInv.length === 0 && inventarioRef.current.length > 0) {
+                await client.from("inventario_ti").upsert(inventarioRef.current.map(invParaDb), { onConflict: "id" });
+              }
+              if (listaRms.length === 0 && itensRmsRef.current.length > 0) {
+                await client.from("rms_obras").upsert(itensRmsRef.current.map(rmsParaDb), { onConflict: "id" });
+              }
+              setStatusNuvem("Supabase Sincronizado");
+            } catch (err) {
+              setStatusNuvem("Offline / Erro Supabase (LocalStorage ativo)");
+            }
+          })();
 
           canal = client
             .channel("sync-enesapp-tabelas")
-            .on("postgres_changes", { event: "*", schema: "public", table: "inventario_ti" }, () => {
-              sincronizarComSupabase(client, false, false);
+            .on("postgres_changes", { event: "*", schema: "public", table: "inventario_ti" }, async () => {
+              try {
+                await lerApenasDoSupabase(client);
+                setStatusNuvem("Supabase Sincronizado");
+              } catch (e) {}
             })
-            .on("postgres_changes", { event: "*", schema: "public", table: "rms_obras" }, () => {
-              sincronizarComSupabase(client, false, false);
+            .on("postgres_changes", { event: "*", schema: "public", table: "rms_obras" }, async () => {
+              try {
+                await lerApenasDoSupabase(client);
+                setStatusNuvem("Supabase Sincronizado");
+              } catch (e) {}
             })
             .subscribe();
         } catch (e) {
@@ -655,40 +751,40 @@
         };
       }, [configSupa.url, configSupa.anonKey]);
 
-      async function sincronizarComSupabase(clientOverride = null, mostrarMensagem = true, semearSeVazio = false) {
+      // Botão Sincronizar: grava alterações atuais no Supabase e depois lê o estado atualizado do banco
+      async function sincronizarComSupabase(clientOverride = null, mostrarMensagem = true) {
         const client = clientOverride || supabaseRef.current;
         if (!client) {
           if (mostrarMensagem) setAviso("Configure a URL e a chave pública do Supabase em 'Config. Supabase'.");
           return;
         }
+        setAviso("");
         setStatusNuvem("Sincronizando...");
         try {
-          const [resInv, resRms] = await Promise.all([
-            client.from("inventario_ti").select("*").order("id", { ascending: true }),
-            client.from("rms_obras").select("*").order("id", { ascending: true })
-          ]);
+          const atualInv = inventarioRef.current;
+          const atualRms = itensRmsRef.current;
 
-          if (resInv.error) throw resInv.error;
-          if (resRms.error) throw resRms.error;
-
-          if (Array.isArray(resInv.data) && resInv.data.length > 0) {
-            const listaInv = resInv.data.map(dbParaInv);
-            setInventario(listaInv);
-            setLinhaSelecionadaInv((prev) => listaInv.some((x) => String(x.id) === String(prev)) ? prev : listaInv[0].id);
-          } else if (semearSeVazio && inventario.length > 0) {
-            await client.from("inventario_ti").upsert(inventario.map(invParaDb), { onConflict: "id" });
+          if (atualInv.length > 0) {
+            const { error: errUpInv } = await client
+              .from("inventario_ti")
+              .upsert(atualInv.map(invParaDb), { onConflict: "id" });
+            if (errUpInv) throw errUpInv;
           }
 
-          if (Array.isArray(resRms.data) && resRms.data.length > 0) {
-            const listaRms = resRms.data.map(dbParaRms);
-            setItensRms(listaRms);
-            setLinhaSelecionadaRms((prev) => listaRms.some((x) => String(x.id) === String(prev)) ? prev : listaRms[0].id);
-          } else if (semearSeVazio && itensRms.length > 0) {
-            await client.from("rms_obras").upsert(itensRms.map(rmsParaDb), { onConflict: "id" });
+          if (atualRms.length > 0) {
+            const { error: errUpRms } = await client
+              .from("rms_obras")
+              .upsert(atualRms.map(rmsParaDb), { onConflict: "id" });
+            if (errUpRms) throw errUpRms;
           }
 
+          const { listaInv, listaRms } = await lerApenasDoSupabase(client);
           setStatusNuvem("Supabase Sincronizado");
-          if (mostrarMensagem) setStatusLeitura("Dados sincronizados com o Supabase e salvos no LocalStorage.");
+          if (mostrarMensagem) {
+            setStatusLeitura(
+              `Gravado e lido do Supabase com sucesso! (Inventário TI: ${listaInv.length || atualInv.length} itens | RMS_OBRAS: ${listaRms.length || atualRms.length} itens)`
+            );
+          }
         } catch (err) {
           setStatusNuvem("Offline / Erro Supabase (LocalStorage ativo)");
           if (mostrarMensagem) setAviso(`Falha ao sincronizar com Supabase: ${err.message || err}`);
@@ -754,48 +850,28 @@
         : null;
       const patValido = itemEtiqueta ? temPatrimonioValido(itemEtiqueta.patrimonio) : false;
 
-      // Filtro Inventário TI
       const termoInv = pesquisaInv.trim().toLowerCase();
       const inventarioFiltrado = inventario
         .map((row, index) => ({ row, index }))
         .filter(({ row }) => {
           if (!termoInv) return true;
           const campos = [
-            row.id,
-            row.patrimonio,
-            row.patrimonio2,
-            row.tipo,
-            row.modelo,
-            row.processador,
-            row.ram,
-            row.armazenamento,
-            row.localEqp,
-            row.status,
-            row.data,
-            formatarDataBR(row.data)
+            row.id, row.patrimonio, row.patrimonio2, row.tipo, row.modelo,
+            row.processador, row.ram, row.armazenamento, row.localEqp,
+            row.status, row.data, formatarDataBR(row.data)
           ];
           return campos.some((val) => String(val ?? "").toLowerCase().includes(termoInv));
         });
 
-      // Filtro RMS_OBRAS
       const termoRms = pesquisaRms.trim().toLowerCase();
       const rmsFiltrado = itensRms
         .map((row, index) => ({ row, index }))
         .filter(({ row }) => {
           if (!termoRms) return true;
           const campos = [
-            row.id,
-            row.patrimonio,
-            row.patrimonio2,
-            row.qtd,
-            row.descricao,
-            row.data,
-            formatarDataBR(row.data),
-            row.setor,
-            row.obra,
-            row.status,
-            row.rms,
-            row.idProduto
+            row.id, row.patrimonio, row.patrimonio2, row.qtd, row.descricao,
+            row.data, formatarDataBR(row.data), row.setor, row.obra,
+            row.status, row.rms, row.idProduto
           ];
           return campos.some((val) => String(val ?? "").toLowerCase().includes(termoRms));
         });
@@ -850,7 +926,6 @@
         }
       }
 
-      // Câmera QR Code na aba ativa
       useEffect(() => {
         if (!cameraAtiva || (aba !== "Inventário TI" && aba !== "RMS_OBRAS")) {
           if (scannerInstanceRef.current) {
@@ -896,7 +971,6 @@
         };
       }, [cameraAtiva, aba]);
 
-      // Code 128 + QR Code na etiqueta
       useEffect(() => {
         if (aba !== "Etiqueta") return;
 
@@ -938,7 +1012,6 @@
         }
       }, [aba, itemEtiqueta, patValido]);
 
-      // Funções Inventário TI
       function atualizarCampoInv(index, campo, valor) {
         let itemAtualizado = null;
         setInventario((prev) => {
@@ -960,6 +1033,10 @@
 
           copia[index] = { ...copia[index], [campo]: novoValor };
           itemAtualizado = copia[index];
+          inventarioRef.current = copia;
+          try {
+            localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(copia));
+          } catch (e) {}
           return copia;
         });
         if (itemAtualizado) salvarItemNoSupabase("inventario_ti", invParaDb(itemAtualizado));
@@ -983,7 +1060,12 @@
             status: ultimo ? ultimo.status : "Em estoque Funcionando",
             data: hojeISO()
           };
-          return [...prev, novaLinha];
+          const atualizada = [...prev, novaLinha];
+          inventarioRef.current = atualizada;
+          try {
+            localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(atualizada));
+          } catch (e) {}
+          return atualizada;
         });
         if (novaLinha) salvarItemNoSupabase("inventario_ti", invParaDb(novaLinha));
       }
@@ -993,6 +1075,10 @@
         setInventario((prev) => {
           removida = prev[index];
           const restante = prev.filter((_, i) => i !== index);
+          inventarioRef.current = restante;
+          try {
+            localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(restante));
+          } catch (e) {}
           if (removida && origemEtiqueta === "INVENTARIO_TI" && String(removida.id) === String(eqpSelecionado)) {
             setEqpSelecionado(restante.length > 0 ? restante[0].id : "");
           }
@@ -1075,6 +1161,7 @@
               return;
             }
 
+            inventarioRef.current = linhasDados;
             setInventario(linhasDados);
             setLinhaSelecionadaInv(linhasDados[0].id);
             if (origemEtiqueta === "INVENTARIO_TI") setEqpSelecionado(linhasDados[0].id);
@@ -1095,17 +1182,8 @@
           [],
           ["EQP", "Patrimonio", "Patrimonio2", "Tipo", "modelo", "Processador", "Ram", "Armazenamento", "Local EQP", "Status", "Data"],
           ...inventario.map((r) => [
-            r.id,
-            r.patrimonio,
-            r.patrimonio2,
-            r.tipo,
-            r.modelo,
-            r.processador,
-            r.ram,
-            r.armazenamento,
-            r.localEqp,
-            r.status,
-            formatarDataBR(r.data)
+            r.id, r.patrimonio, r.patrimonio2, r.tipo, r.modelo,
+            r.processador, r.ram, r.armazenamento, r.localEqp, r.status, formatarDataBR(r.data)
           ])
         ];
 
@@ -1121,7 +1199,6 @@
         XLSX.writeFile(wb, `Inventario_TI_${hojeISO()}.xlsx`);
       }
 
-      // Funções RMS_OBRAS
       function atualizarCampoRms(index, campo, valor) {
         let itemAtualizado = null;
         setItensRms((prev) => {
@@ -1140,6 +1217,10 @@
 
           copia[index] = { ...copia[index], [campo]: novoValor };
           itemAtualizado = copia[index];
+          itensRmsRef.current = copia;
+          try {
+            localStorage.setItem("rms_obras_itens_v1", JSON.stringify(copia));
+          } catch (e) {}
           return copia;
         });
         if (itemAtualizado) salvarItemNoSupabase("rms_obras", rmsParaDb(itemAtualizado));
@@ -1163,7 +1244,12 @@
             rms: ultimo ? ultimo.rms : "",
             idProduto: ""
           };
-          return [...prev, novaLinha];
+          const atualizada = [...prev, novaLinha];
+          itensRmsRef.current = atualizada;
+          try {
+            localStorage.setItem("rms_obras_itens_v1", JSON.stringify(atualizada));
+          } catch (e) {}
+          return atualizada;
         });
         if (novaLinha) salvarItemNoSupabase("rms_obras", rmsParaDb(novaLinha));
       }
@@ -1173,6 +1259,10 @@
         setItensRms((prev) => {
           removida = prev[index];
           const restante = prev.filter((_, i) => i !== index);
+          itensRmsRef.current = restante;
+          try {
+            localStorage.setItem("rms_obras_itens_v1", JSON.stringify(restante));
+          } catch (e) {}
           if (removida && origemEtiqueta === "RMS_OBRAS" && String(removida.id) === String(eqpSelecionado)) {
             setEqpSelecionado(restante.length > 0 ? restante[0].id : "");
           }
@@ -1255,6 +1345,7 @@
               return;
             }
 
+            itensRmsRef.current = linhasDados;
             setItensRms(linhasDados);
             setLinhaSelecionadaRms(linhasDados[0].id);
             if (origemEtiqueta === "RMS_OBRAS") setEqpSelecionado(linhasDados[0].id);
@@ -1275,17 +1366,8 @@
           [],
           ["ID", "Patrimonio", "Patrimonio2", "QTD:", "DESCRIÇÃO", "DATA:", "SETOR", "OBRA", "STATUS", "RMS", "ID PRODUTO"],
           ...itensRms.map((r) => [
-            r.id,
-            r.patrimonio,
-            r.patrimonio2,
-            Number(r.qtd) || 0,
-            r.descricao,
-            formatarDataBR(r.data),
-            r.setor,
-            r.obra,
-            r.status,
-            r.rms,
-            r.idProduto
+            r.id, r.patrimonio, r.patrimonio2, Number(r.qtd) || 0, r.descricao,
+            formatarDataBR(r.data), r.setor, r.obra, r.status, r.rms, r.idProduto
           ])
         ];
 
@@ -1388,7 +1470,7 @@
             >
               Config. Supabase
             </button>
-            <button onClick={() => sincronizarComSupabase(null, true, false)}>
+            <button onClick={() => sincronizarComSupabase(null, true)}>
               Sincronizar
             </button>
             <span className="db-status">{statusNuvem}</span>
@@ -1506,6 +1588,7 @@
                     className="btn-reset"
                     onClick={() => {
                       try { localStorage.removeItem("inventario_ti_itens_v1"); } catch (e) {}
+                      inventarioRef.current = INVENTARIO_INICIAL;
                       setInventario(INVENTARIO_INICIAL);
                       enviarListaCompletaParaSupabase("inventario_ti", INVENTARIO_INICIAL.map(invParaDb));
                       setPesquisaInv("");
@@ -1520,126 +1603,128 @@
                 {statusLeitura && <div className="msg-sucesso">{statusLeitura}</div>}
                 {aviso && <div className="msg-alerta">{aviso}</div>}
 
-                <table>
-                  <thead>
-                    <tr>
-                      <th>EQP</th>
-                      <th>Patrimonio</th>
-                      <th>Patrimonio2</th>
-                      <th>Tipo</th>
-                      <th>modelo</th>
-                      <th>Processador</th>
-                      <th>Ram</th>
-                      <th>Armazenamento</th>
-                      <th>Local EQP</th>
-                      <th>Status</th>
-                      <th>Data</th>
-                      <th>Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inventarioFiltrado.map(({ row, index }) => {
-                      const selecionada = String(row.id) === String(linhaSelecionadaInv);
-                      return (
-                        <tr
-                          key={row.id}
-                          className={selecionada ? "linha-selecionada" : ""}
-                          onClick={() => {
-                            setLinhaSelecionadaInv(row.id);
-                            setOrigemEtiqueta("INVENTARIO_TI");
-                            setEqpSelecionado(row.id);
-                          }}
-                        >
-                          <td>{row.id}</td>
-                          <td>
-                            <input
-                              value={row.patrimonio}
-                              placeholder="Ex: 1298 ou 02562-1298"
-                              onChange={(e) => atualizarCampoInv(index, "patrimonio", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.patrimonio2}
-                              onChange={(e) => atualizarCampoInv(index, "patrimonio2", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.tipo}
-                              onChange={(e) => atualizarCampoInv(index, "tipo", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.modelo}
-                              onChange={(e) => atualizarCampoInv(index, "modelo", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.processador}
-                              onChange={(e) => atualizarCampoInv(index, "processador", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.ram}
-                              onChange={(e) => atualizarCampoInv(index, "ram", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.armazenamento}
-                              onChange={(e) => atualizarCampoInv(index, "armazenamento", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.localEqp}
-                              onChange={(e) => atualizarCampoInv(index, "localEqp", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.status}
-                              onChange={(e) => atualizarCampoInv(index, "status", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="date"
-                              value={row.data}
-                              onChange={(e) => atualizarCampoInv(index, "data", e.target.value)}
-                            />
-                          </td>
-                          <td onClick={(e) => e.stopPropagation()}>
-                            <select
-                              className="acao-select"
-                              value=""
-                              onChange={(e) => {
-                                const escolha = e.target.value;
-                                e.target.value = "";
-                                executarAcaoInv(escolha, row, index);
-                              }}
-                            >
-                              <option value="" disabled>Ação...</option>
-                              <option value="etiqueta">Etiqueta</option>
-                              <option value="excluir">Excluir</option>
-                            </select>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th className="col-id">EQP</th>
+                        <th className="col-pat">Patrimonio</th>
+                        <th className="col-pat2">Patrimonio2</th>
+                        <th className="col-tipo">Tipo</th>
+                        <th className="col-modelo">modelo</th>
+                        <th className="col-proc">Processador</th>
+                        <th className="col-ram">Ram</th>
+                        <th className="col-armaz">Armazenamento</th>
+                        <th className="col-local">Local EQP</th>
+                        <th className="col-status-inv">Status</th>
+                        <th className="col-data">Data</th>
+                        <th className="col-acao">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inventarioFiltrado.map(({ row, index }) => {
+                        const selecionada = String(row.id) === String(linhaSelecionadaInv);
+                        return (
+                          <tr
+                            key={row.id}
+                            className={selecionada ? "linha-selecionada" : ""}
+                            onClick={() => {
+                              setLinhaSelecionadaInv(row.id);
+                              setOrigemEtiqueta("INVENTARIO_TI");
+                              setEqpSelecionado(row.id);
+                            }}
+                          >
+                            <td className="col-id">{row.id}</td>
+                            <td className="col-pat">
+                              <input
+                                value={row.patrimonio}
+                                placeholder="Ex: 1298 ou 02562-1298"
+                                onChange={(e) => atualizarCampoInv(index, "patrimonio", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-pat2">
+                              <input
+                                value={row.patrimonio2}
+                                onChange={(e) => atualizarCampoInv(index, "patrimonio2", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-tipo">
+                              <input
+                                value={row.tipo}
+                                onChange={(e) => atualizarCampoInv(index, "tipo", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-modelo">
+                              <input
+                                value={row.modelo}
+                                onChange={(e) => atualizarCampoInv(index, "modelo", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-proc">
+                              <input
+                                value={row.processador}
+                                onChange={(e) => atualizarCampoInv(index, "processador", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-ram">
+                              <input
+                                value={row.ram}
+                                onChange={(e) => atualizarCampoInv(index, "ram", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-armaz">
+                              <input
+                                value={row.armazenamento}
+                                onChange={(e) => atualizarCampoInv(index, "armazenamento", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-local">
+                              <input
+                                value={row.localEqp}
+                                onChange={(e) => atualizarCampoInv(index, "localEqp", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-status-inv">
+                              <input
+                                value={row.status}
+                                onChange={(e) => atualizarCampoInv(index, "status", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-data">
+                              <input
+                                type="date"
+                                value={row.data}
+                                onChange={(e) => atualizarCampoInv(index, "data", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-acao" onClick={(e) => e.stopPropagation()}>
+                              <select
+                                className="acao-select"
+                                value=""
+                                onChange={(e) => {
+                                  const escolha = e.target.value;
+                                  e.target.value = "";
+                                  executarAcaoInv(escolha, row, index);
+                                }}
+                              >
+                                <option value="" disabled>Ação...</option>
+                                <option value="etiqueta">Etiqueta</option>
+                                <option value="excluir">Excluir</option>
+                              </select>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {inventarioFiltrado.length === 0 && (
+                        <tr>
+                          <td colSpan="12" style={{ padding: 14, color: "#64748b" }}>
+                            Nenhum registro encontrado para "{pesquisaInv}".
                           </td>
                         </tr>
-                      );
-                    })}
-                    {inventarioFiltrado.length === 0 && (
-                      <tr>
-                        <td colSpan="12" style={{ padding: 14, color: "#64748b" }}>
-                          Nenhum registro encontrado para "{pesquisaInv}".
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -1715,6 +1800,7 @@
                     className="btn-reset"
                     onClick={() => {
                       try { localStorage.removeItem("rms_obras_itens_v1"); } catch (e) {}
+                      itensRmsRef.current = RMS_INICIAL;
                       setItensRms(RMS_INICIAL);
                       enviarListaCompletaParaSupabase("rms_obras", RMS_INICIAL.map(rmsParaDb));
                       setPesquisaRms("");
@@ -1729,131 +1815,133 @@
                 {statusLeitura && <div className="msg-sucesso">{statusLeitura}</div>}
                 {aviso && <div className="msg-alerta">{aviso}</div>}
 
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Patrimonio</th>
-                      <th>Patrimonio2</th>
-                      <th>QTD:</th>
-                      <th>DESCRIÇÃO</th>
-                      <th>DATA:</th>
-                      <th>SETOR</th>
-                      <th>OBRA</th>
-                      <th>STATUS</th>
-                      <th>RMS</th>
-                      <th>ID PRODUTO</th>
-                      <th>Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rmsFiltrado.map(({ row, index }) => {
-                      const selecionada = String(row.id) === String(linhaSelecionadaRms);
-                      return (
-                        <tr
-                          key={row.id}
-                          className={selecionada ? "linha-selecionada" : ""}
-                          onClick={() => {
-                            setLinhaSelecionadaRms(row.id);
-                            setOrigemEtiqueta("RMS_OBRAS");
-                            setEqpSelecionado(row.id);
-                          }}
-                        >
-                          <td>{row.id}</td>
-                          <td>
-                            <input
-                              value={row.patrimonio}
-                              placeholder="Ex: 1450 ou 02569-0762"
-                              onChange={(e) => atualizarCampoRms(index, "patrimonio", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.patrimonio2}
-                              onChange={(e) => atualizarCampoRms(index, "patrimonio2", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              value={row.qtd}
-                              onChange={(e) => atualizarCampoRms(index, "qtd", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.descricao}
-                              onChange={(e) => atualizarCampoRms(index, "descricao", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="date"
-                              value={row.data}
-                              onChange={(e) => atualizarCampoRms(index, "data", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.setor}
-                              onChange={(e) => atualizarCampoRms(index, "setor", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.obra}
-                              onChange={(e) => atualizarCampoRms(index, "obra", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <select
-                              className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
-                              value={row.status}
-                              onChange={(e) => atualizarCampoRms(index, "status", e.target.value)}
-                            >
-                              <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
-                              <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
-                            </select>
-                          </td>
-                          <td>
-                            <input
-                              value={row.rms}
-                              onChange={(e) => atualizarCampoRms(index, "rms", e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={row.idProduto}
-                              onChange={(e) => atualizarCampoRms(index, "idProduto", e.target.value)}
-                            />
-                          </td>
-                          <td onClick={(e) => e.stopPropagation()}>
-                            <select
-                              className="acao-select"
-                              value=""
-                              onChange={(e) => {
-                                const escolha = e.target.value;
-                                e.target.value = "";
-                                executarAcaoRms(escolha, row, index);
-                              }}
-                            >
-                              <option value="" disabled>Ação...</option>
-                              <option value="etiqueta">Etiqueta</option>
-                              <option value="excluir">Excluir</option>
-                            </select>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th className="col-id">ID</th>
+                        <th className="col-pat">Patrimonio</th>
+                        <th className="col-pat2">Patrimonio2</th>
+                        <th className="col-qtd">QTD:</th>
+                        <th className="col-desc">DESCRIÇÃO</th>
+                        <th className="col-data">DATA:</th>
+                        <th className="col-setor">SETOR</th>
+                        <th className="col-obra">OBRA</th>
+                        <th className="col-status-rms">STATUS</th>
+                        <th className="col-rms">RMS</th>
+                        <th className="col-idprod">ID PRODUTO</th>
+                        <th className="col-acao">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rmsFiltrado.map(({ row, index }) => {
+                        const selecionada = String(row.id) === String(linhaSelecionadaRms);
+                        return (
+                          <tr
+                            key={row.id}
+                            className={selecionada ? "linha-selecionada" : ""}
+                            onClick={() => {
+                              setLinhaSelecionadaRms(row.id);
+                              setOrigemEtiqueta("RMS_OBRAS");
+                              setEqpSelecionado(row.id);
+                            }}
+                          >
+                            <td className="col-id">{row.id}</td>
+                            <td className="col-pat">
+                              <input
+                                value={row.patrimonio}
+                                placeholder="Ex: 1450 ou 02569-0762"
+                                onChange={(e) => atualizarCampoRms(index, "patrimonio", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-pat2">
+                              <input
+                                value={row.patrimonio2}
+                                onChange={(e) => atualizarCampoRms(index, "patrimonio2", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-qtd">
+                              <input
+                                type="number"
+                                value={row.qtd}
+                                onChange={(e) => atualizarCampoRms(index, "qtd", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-desc">
+                              <input
+                                value={row.descricao}
+                                onChange={(e) => atualizarCampoRms(index, "descricao", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-data">
+                              <input
+                                type="date"
+                                value={row.data}
+                                onChange={(e) => atualizarCampoRms(index, "data", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-setor">
+                              <input
+                                value={row.setor}
+                                onChange={(e) => atualizarCampoRms(index, "setor", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-obra">
+                              <input
+                                value={row.obra}
+                                onChange={(e) => atualizarCampoRms(index, "obra", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-status-rms">
+                              <select
+                                className={row.status === "SEPARAÇÃO SEM LISTA" ? "status-semlista" : "status-baia"}
+                                value={row.status}
+                                onChange={(e) => atualizarCampoRms(index, "status", e.target.value)}
+                              >
+                                <option value="SEPARAÇÃO NA BAIA">SEPARAÇÃO NA BAIA</option>
+                                <option value="SEPARAÇÃO SEM LISTA">SEPARAÇÃO SEM LISTA</option>
+                              </select>
+                            </td>
+                            <td className="col-rms">
+                              <input
+                                value={row.rms}
+                                onChange={(e) => atualizarCampoRms(index, "rms", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-idprod">
+                              <input
+                                value={row.idProduto}
+                                onChange={(e) => atualizarCampoRms(index, "idProduto", e.target.value)}
+                              />
+                            </td>
+                            <td className="col-acao" onClick={(e) => e.stopPropagation()}>
+                              <select
+                                className="acao-select"
+                                value=""
+                                onChange={(e) => {
+                                  const escolha = e.target.value;
+                                  e.target.value = "";
+                                  executarAcaoRms(escolha, row, index);
+                                }}
+                              >
+                                <option value="" disabled>Ação...</option>
+                                <option value="etiqueta">Etiqueta</option>
+                                <option value="excluir">Excluir</option>
+                              </select>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {rmsFiltrado.length === 0 && (
+                        <tr>
+                          <td colSpan="12" style={{ padding: 14, color: "#64748b" }}>
+                            Nenhum registro encontrado para "{pesquisaRms}".
                           </td>
                         </tr>
-                      );
-                    })}
-                    {rmsFiltrado.length === 0 && (
-                      <tr>
-                        <td colSpan="12" style={{ padding: 14, color: "#64748b" }}>
-                          Nenhum registro encontrado para "{pesquisaRms}".
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -1878,7 +1966,7 @@
                   <input
                     type="number"
                     className="hl-yellow"
-                    style={{ width: 70, textAlign: "center" }}
+                    style={{ width: 76, textAlign: "center" }}
                     value={eqpSelecionado}
                     onChange={(e) => setEqpSelecionado(e.target.value)}
                   />
@@ -1909,7 +1997,7 @@
                       }
                     }}
                   />
-                  <button onClick={() => processarLeituraCodigoBarras(codBarrasInput)}>Buscar</button>
+                  <button className="btn-cam" onClick={() => processarLeituraCodigoBarras(codBarrasInput)}>Buscar</button>
                 </div>
 
                 {aviso && <div className="msg-alerta no-print">{aviso}</div>}
