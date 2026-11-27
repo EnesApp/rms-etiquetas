@@ -11,7 +11,7 @@
   />
   <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode + Supabase via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -695,10 +695,6 @@
       const fileInvRef = useRef(null);
       const fileRmsRef = useRef(null);
       const scannerInstanceRef = useRef(null);
-
-      useEffect(() => {
-        console.log("[ALTERAÇÃO] Código principal reconhecido (gemini-code-1795793821457.html) — nenhuma alteração funcional aplicada nesta etapa.");
-      }, []);
 
       useEffect(() => {
         inventarioRef.current = inventario;
@@ -2092,4 +2088,3 @@
   </script>
 </body>
 </html>
-
