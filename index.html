@@ -726,8 +726,9 @@
 
       async function lerApenasDoSupabase(client) {
         const [resInv, resRms] = await Promise.all([
-          client.from("inventario_ti").select("*").order("id", { ascending: true }),
-          client.from("rms_obras").select("*").order("id", { ascending: true })
+          client.from("inventario_ti").select("*").order("id", { ascending: false })
+,
+          client.from("rms_obras").select("*").order("id", { ascending: false })
         ]);
         if (resInv.error) throw resInv.error;
         if (resRms.error) throw resRms.error;
