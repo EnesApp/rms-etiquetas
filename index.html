@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inventário TI & RMS OBRAS</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f497d'/%3E%3Crect x='14' y='15' width='36' height='24' rx='3' fill='%23ffffff'/%3E%3Crect x='18' y='19' width='28' height='16' rx='1.5' fill='%23dbeafe'/%3E%3Crect x='27' y='39' width='10' height='5' fill='%23cbd5e1'/%3E%3Crect x='21' y='44' width='22' height='4' rx='2' fill='%23ffffff'/%3E%3Ccircle cx='47' cy='45' r='9' fill='%2310b981'/%3E%3Cpath d='M43.5 45l2.3 2.3 4.7-4.8' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+  />
   <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode + Supabase via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -26,9 +31,9 @@
     }
     .topbar button.active { background: #fff; color: #1f497d; }
     .db-status {
-      margin-left: auto; font-size: 12px; padding: 5px 10px; border-radius: 999px;
+      margin-left: auto; font-size: 12px; padding: 5px 11px; border-radius: 999px;
       background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
-      font-weight: bold; white-space: nowrap;
+      font-weight: bold; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
     }
     .container { max-width: 1380px; margin: 14px auto; padding: 0 10px; }
     .card {
@@ -52,6 +57,18 @@
     }
     .contador-filtro {
       font-size: 12px; color: #475569; font-weight: bold;
+    }
+
+    /* Sub-aba de Configurações */
+    .config-box {
+      margin-top: 14px; padding: 14px; border: 1px solid #cbd5e1;
+      border-radius: 6px; background: #f8fafc;
+    }
+    .config-info {
+      font-size: 13px; color: #334155; margin: 0 0 12px 0; line-height: 1.45;
+    }
+    .config-actions {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
     }
 
     /* Wrapper responsivo da tabela com rolagem lateral suave */
@@ -370,19 +387,13 @@
               <div className="card">
                 <div className="banner">RECUPERAÇÃO DO SISTEMA</div>
                 <p style={{ marginTop: 12 }}>
-                  Ocorreu um erro ao carregar a tela ({this.state.errorMsg}). Clique abaixo para restaurar os dados locais e recarregar.
+                  Ocorreu um erro ao carregar a tela ({this.state.errorMsg}). Clique abaixo para recarregar a página.
                 </p>
                 <button
                   className="btn-reset"
-                  onClick={() => {
-                    try {
-                      localStorage.removeItem("inventario_ti_itens_v1");
-                      localStorage.removeItem("rms_obras_itens_v1");
-                    } catch (e) {}
-                    window.location.reload();
-                  }}
+                  onClick={() => window.location.reload()}
                 >
-                  Restaurar e Recarregar
+                  Recarregar Página
                 </button>
               </div>
             </div>
@@ -623,7 +634,7 @@
       const [urlInput, setUrlInput] = useState(configSupa.url);
       const [keyInput, setKeyInput] = useState(configSupa.anonKey);
       const [statusNuvem, setStatusNuvem] = useState(
-        configSupa.url && configSupa.anonKey ? "Conectando Supabase..." : "LocalStorage (Sem Supabase)"
+        configSupa.url && configSupa.anonKey ? "Sincronizado" : "Local"
       );
 
       const [inventario, setInventario] = useState(() => carregarListaSegura("inventario_ti_itens_v1", INVENTARIO_INICIAL));
@@ -700,14 +711,14 @@
       useEffect(() => {
         if (!configSupa.url || !configSupa.anonKey || typeof window.supabase === "undefined") {
           supabaseRef.current = null;
-          setStatusNuvem("LocalStorage (Sem Supabase)");
+          setStatusNuvem("Local");
           return;
         }
         let canal = null;
         try {
           const client = window.supabase.createClient(configSupa.url, configSupa.anonKey);
           supabaseRef.current = client;
-          setStatusNuvem("Conectando Supabase...");
+          setStatusNuvem("Sincronizado");
 
           (async () => {
             try {
@@ -718,9 +729,9 @@
               if (listaRms.length === 0 && itensRmsRef.current.length > 0) {
                 await client.from("rms_obras").upsert(itensRmsRef.current.map(rmsParaDb), { onConflict: "id" });
               }
-              setStatusNuvem("Supabase Sincronizado");
+              setStatusNuvem("Sincronizado");
             } catch (err) {
-              setStatusNuvem("Offline / Erro Supabase (LocalStorage ativo)");
+              setStatusNuvem("Local");
             }
           })();
 
@@ -729,19 +740,19 @@
             .on("postgres_changes", { event: "*", schema: "public", table: "inventario_ti" }, async () => {
               try {
                 await lerApenasDoSupabase(client);
-                setStatusNuvem("Supabase Sincronizado");
+                setStatusNuvem("Sincronizado");
               } catch (e) {}
             })
             .on("postgres_changes", { event: "*", schema: "public", table: "rms_obras" }, async () => {
               try {
                 await lerApenasDoSupabase(client);
-                setStatusNuvem("Supabase Sincronizado");
+                setStatusNuvem("Sincronizado");
               } catch (e) {}
             })
             .subscribe();
         } catch (e) {
           supabaseRef.current = null;
-          setStatusNuvem("Erro Supabase (Usando LocalStorage)");
+          setStatusNuvem("Local");
         }
 
         return () => {
@@ -751,7 +762,7 @@
         };
       }, [configSupa.url, configSupa.anonKey]);
 
-      // Botão Sincronizar: grava alterações atuais no Supabase e depois lê o estado atualizado do banco
+      // Sincroniza: grava alterações atuais no Supabase e depois lê o estado atualizado do banco
       async function sincronizarComSupabase(clientOverride = null, mostrarMensagem = true) {
         const client = clientOverride || supabaseRef.current;
         if (!client) {
@@ -759,7 +770,7 @@
           return;
         }
         setAviso("");
-        setStatusNuvem("Sincronizando...");
+        setStatusNuvem("Sincronizado");
         try {
           const atualInv = inventarioRef.current;
           const atualRms = itensRmsRef.current;
@@ -779,14 +790,14 @@
           }
 
           const { listaInv, listaRms } = await lerApenasDoSupabase(client);
-          setStatusNuvem("Supabase Sincronizado");
+          setStatusNuvem("Sincronizado");
           if (mostrarMensagem) {
             setStatusLeitura(
-              `Gravado e lido do Supabase com sucesso! (Inventário TI: ${listaInv.length || atualInv.length} itens | RMS_OBRAS: ${listaRms.length || atualRms.length} itens)`
+              `Sincronizado com sucesso! (Inventário TI: ${listaInv.length || atualInv.length} itens | RMS_OBRAS: ${listaRms.length || atualRms.length} itens)`
             );
           }
         } catch (err) {
-          setStatusNuvem("Offline / Erro Supabase (LocalStorage ativo)");
+          setStatusNuvem("Local");
           if (mostrarMensagem) setAviso(`Falha ao sincronizar com Supabase: ${err.message || err}`);
         }
       }
@@ -794,39 +805,36 @@
       async function salvarItemNoSupabase(tabela, payloadDb) {
         const client = supabaseRef.current;
         if (!client) return;
-        setStatusNuvem("Salvando...");
         try {
           const { error } = await client.from(tabela).upsert(payloadDb, { onConflict: "id" });
           if (error) throw error;
-          setStatusNuvem("Supabase Sincronizado");
+          setStatusNuvem("Sincronizado");
         } catch (err) {
-          setStatusNuvem("Salvo Local (Erro Supabase)");
+          setStatusNuvem("Local");
         }
       }
 
       async function excluirItemNoSupabase(tabela, id) {
         const client = supabaseRef.current;
         if (!client) return;
-        setStatusNuvem("Excluindo...");
         try {
           const { error } = await client.from(tabela).delete().eq("id", Number(id));
           if (error) throw error;
-          setStatusNuvem("Supabase Sincronizado");
+          setStatusNuvem("Sincronizado");
         } catch (err) {
-          setStatusNuvem("Removido Local (Erro Supabase)");
+          setStatusNuvem("Local");
         }
       }
 
       async function enviarListaCompletaParaSupabase(tabela, listaDb) {
         const client = supabaseRef.current;
         if (!client || !Array.isArray(listaDb) || listaDb.length === 0) return;
-        setStatusNuvem("Enviando...");
         try {
           const { error } = await client.from(tabela).upsert(listaDb, { onConflict: "id" });
           if (error) throw error;
-          setStatusNuvem("Supabase Sincronizado");
+          setStatusNuvem("Sincronizado");
         } catch (err) {
-          setStatusNuvem("Salvo Local (Erro Supabase)");
+          setStatusNuvem("Local");
         }
       }
 
@@ -839,6 +847,7 @@
         setConfigSupa(limpo);
         setModalSupaAberto(false);
         setAviso("");
+        setStatusLeitura("Configuração do Supabase salva.");
       }
 
       const listaAtivaEtiqueta = origemEtiqueta === "INVENTARIO_TI" ? inventario : itensRms;
@@ -1462,18 +1471,20 @@
               Etiqueta
             </button>
             <button
+              className={aba === "Config" ? "active" : ""}
               onClick={() => {
-                setUrlInput(configSupa.url);
-                setKeyInput(configSupa.anonKey);
-                setModalSupaAberto(true);
+                setCameraAtiva(false);
+                setAviso("");
+                setStatusLeitura("");
+                setAba("Config");
               }}
             >
-              Config. Supabase
+              ⚙ Config
             </button>
-            <button onClick={() => sincronizarComSupabase(null, true)}>
-              Sincronizar
-            </button>
-            <span className="db-status">{statusNuvem}</span>
+            <span className="db-status" title="Estado da sincronização">
+              <span>⚙</span>
+              <span>{statusNuvem}</span>
+            </span>
           </div>
 
           {modalSupaAberto && (
@@ -1516,6 +1527,34 @@
           )}
 
           <div className="container">
+            {aba === "Config" && (
+              <div className="card">
+                <div className="banner">CONFIGURAÇÕES E SINCRONIZAÇÃO</div>
+                <div className="config-box">
+                  <p className="config-info">
+                    A sincronização automática já roda ao alterar, adicionar ou excluir itens. Use os botões abaixo apenas para forçar uma sincronização manual ou alterar a conexão com o banco.
+                  </p>
+                  <div className="config-actions">
+                    <button className="btn-cam" onClick={() => sincronizarComSupabase(null, true)}>
+                      Sincronizar Agora
+                    </button>
+                    <button
+                      className="btn-reset"
+                      onClick={() => {
+                        setUrlInput(configSupa.url);
+                        setKeyInput(configSupa.anonKey);
+                        setModalSupaAberto(true);
+                      }}
+                    >
+                      Config. Supabase
+                    </button>
+                  </div>
+                </div>
+                {statusLeitura && <div className="msg-sucesso">{statusLeitura}</div>}
+                {aviso && <div className="msg-alerta">{aviso}</div>}
+              </div>
+            )}
+
             {aba === "Inventário TI" && (
               <div className="card">
                 <div className="banner">RELAÇÃO DE INVENTÁRIO - ESTOQUE DE TI</div>
@@ -1584,20 +1623,6 @@
                     onChange={importarExcelInv}
                   />
                   <button className="btn-excel" onClick={exportarExcelInv}>Exportar Excel (.xlsx)</button>
-                  <button
-                    className="btn-reset"
-                    onClick={() => {
-                      try { localStorage.removeItem("inventario_ti_itens_v1"); } catch (e) {}
-                      inventarioRef.current = INVENTARIO_INICIAL;
-                      setInventario(INVENTARIO_INICIAL);
-                      enviarListaCompletaParaSupabase("inventario_ti", INVENTARIO_INICIAL.map(invParaDb));
-                      setPesquisaInv("");
-                      setStatusLeitura("");
-                      setAviso("");
-                    }}
-                  >
-                    Restaurar Exemplo Inicial
-                  </button>
                 </div>
 
                 {statusLeitura && <div className="msg-sucesso">{statusLeitura}</div>}
@@ -1796,20 +1821,6 @@
                     onChange={importarExcelRms}
                   />
                   <button className="btn-excel" onClick={exportarExcelRms}>Exportar Excel (.xlsx)</button>
-                  <button
-                    className="btn-reset"
-                    onClick={() => {
-                      try { localStorage.removeItem("rms_obras_itens_v1"); } catch (e) {}
-                      itensRmsRef.current = RMS_INICIAL;
-                      setItensRms(RMS_INICIAL);
-                      enviarListaCompletaParaSupabase("rms_obras", RMS_INICIAL.map(rmsParaDb));
-                      setPesquisaRms("");
-                      setStatusLeitura("");
-                      setAviso("");
-                    }}
-                  >
-                    Restaurar Exemplo Inicial
-                  </button>
                 </div>
 
                 {statusLeitura && <div className="msg-sucesso">{statusLeitura}</div>}
