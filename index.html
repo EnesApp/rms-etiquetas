@@ -1098,7 +1098,7 @@
             status: ultimo ? normalizarStatusInv(ultimo.status) : "Funcionando",
             data: hojeISO()
           };
-          const atualizada = [novaLinha, ...prev];
+          const atualizada = [...prev, novaLinha];
           inventarioRef.current = atualizada;
           try {
             localStorage.setItem("inventario_ti_itens_v1", JSON.stringify(atualizada));
@@ -1282,7 +1282,7 @@
             rms: ultimo ? ultimo.rms : "",
             idProduto: ""
           };
-          const atualizada = [novaLinha, ...prev];
+          const atualizada = [...prev, novaLinha];
           itensRmsRef.current = atualizada;
           try {
             localStorage.setItem("rms_obras_itens_v1", JSON.stringify(atualizada));
