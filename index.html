@@ -11,7 +11,7 @@
   />
   <!-- React + Babel + JsBarcode + QRCode + SheetJS (Excel .xlsx) + html5-qrcode + Supabase via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -417,9 +417,25 @@
       }
     }
 
-    const INVENTARIO_INICIAL = [];
+    const INVENTARIO_INICIAL = [
+      { id: 1, patrimonio: "02562-1298", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "Sem Armazenamento", localEqp: "TI.09A2", status: "Funcionando", data: "2026-10-29" },
+      { id: 2, patrimonio: "02562-0862", patrimonio2: "02562-0118", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "1TB", localEqp: "TI.09A2", status: "Funcionando", data: "2026-10-29" },
+      { id: 3, patrimonio: "02562-1152", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "Sem Memoria", armazenamento: "Sem Armazenamento", localEqp: "TI.09A2", status: "Inoperante", data: "2026-11-04" },
+      { id: 4, patrimonio: "02562-1698", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "6GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Inoperante", data: "2026-11-04" },
+      { id: 5, patrimonio: "02562-1329", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Funcionando", data: "2026-11-04" },
+      { id: 6, patrimonio: "02562-1119", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Funcionando", data: "2026-11-19" },
+      { id: 7, patrimonio: "02562-1122", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "4GB", armazenamento: "1TB", localEqp: "TI.09A2", status: "Funcionando", data: "2026-11-19" },
+      { id: 8, patrimonio: "02562-1237", patrimonio2: "", tipo: "CPU", modelo: "HP Compaq 8100 Elite", processador: "Core i5 650", ram: "8GB", armazenamento: "320GB", localEqp: "TI.09A2", status: "Funcionando", data: "2026-11-23" }
+    ];
 
-    const RMS_INICIAL = [];
+    const RMS_INICIAL = [
+      { id: 1, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-10", setor: "ENESA", obra: "124", status: "SEPARAÇÃO NA BAIA", rms: "119370", idProduto: "11909" },
+      { id: 2, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "MOUSER", data: "2026-11-17", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11795" },
+      { id: 3, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 5, descricao: "TECLADO", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "11909" },
+      { id: 4, patrimonio: "02569-0762", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
+      { id: 5, patrimonio: "02569-1170", patrimonio2: "", qtd: 1, descricao: "MONITOR", data: "2026-11-18", setor: "ENESA", obra: "126", status: "SEPARAÇÃO NA BAIA", rms: "119555", idProduto: "17351" },
+      { id: 6, patrimonio: "Não Relacionado", patrimonio2: "", qtd: 10, descricao: "MOUSER", data: "2026-11-23", setor: "ENESA", obra: "129", status: "SEPARAÇÃO NA BAIA", rms: "120012", idProduto: "11795" }
+    ];
 
     function normalizarStatusInv(valor) {
       const txt = String(valor || "").trim().toLowerCase();
@@ -450,7 +466,7 @@
         const salvo = localStorage.getItem(chave);
         if (!salvo) return padrao;
         const parsed = JSON.parse(salvo);
-        return Array.isArray(parsed) ? parsed : padrao;
+        return Array.isArray(parsed) && parsed.length > 0 ? parsed : padrao;
       } catch (e) {
         return padrao;
       }
