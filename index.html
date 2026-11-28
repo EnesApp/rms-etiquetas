@@ -998,11 +998,31 @@
           .start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 220, height: 220 } },
-            (decodedText) => {
-              const dados = parsearDadosQR(decodedText);
-              aplicarBuscaESelecao(dados, aba);
-              setCameraAtiva(false);
-            },
+           
+(decodedText) => {
+  try {
+    console.log("QR LIDO:", decodedText);
+
+    const dados = parsearDadosQR(decodedText);
+
+    console.log("DADOS QR:", dados);
+
+    aplicarBuscaESelecao(dados, aba);
+
+    setCameraAtiva(false);
+  } catch (erro) {
+    console.error("ERRO QR:", erro);
+
+    setAviso(
+      "Erro ao processar QR Code: " +
+      (erro?.message || erro)
+    );
+
+    setCameraAtiva(false);
+  }
+}
+
+            ,
             () => {}
           )
           .catch(() => {
@@ -1470,13 +1490,18 @@
         }, 10);
       }
 
-      function imprimirEtiqueta() {
-        if (!itemEtiqueta) {
-          alert(`O EQP ${eqpSelecionado} não foi encontrado.`);
-          return;
-        }
-        window.print();
-      }
+     async function imprimirEtiqueta() {
+  if (!itemEtiqueta) {
+    alert(`O EQP ${eqpSelecionado} não foi encontrado.`);
+    return;
+  }
+
+  try {
+    await sincronizarComSupabase(null, false);
+  } catch (e) {}
+
+  window.print();
+}
 
       return (
         <div>
