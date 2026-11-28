@@ -1,1 +1,32 @@
+name: Auto Version
 
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Atualizar Versao
+        run: |
+          VERSION=$(grep -oP 'APP_VERSAO = "v\K[0-9]+' index.html || echo 0)
+          NOVA=$((VERSION + 1))
+
+          sed -i "s/APP_VERSAO = \"v${VERSION}\"/APP_VERSAO = \"v${NOVA}\"/" index.html
+
+      - name: Commit
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add index.html
+          git commit -m "Versao automatica" || exit 0
+          git push
