@@ -393,6 +393,12 @@
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
+   
+    /* ===================================== */
+/* CONTROLE DE VERSÃO */
+/* ===================================== */
+
+const APP_VERSAO = "v0"; 
 
     // Configuração fixa do projeto EnesApp no Supabase
     const SUPABASE_PADRAO = {
@@ -1502,7 +1508,9 @@
       return (
         <div>
           <div className="topbar">
-            <strong>INVENTÁRIO TI & RMS OBRAS</strong>
+            <strong>
+  INVENTÁRIO TI & RMS OBRAS {APP_VERSAO}
+</strong>
             <button
               className={aba === "Inventário TI" ? "active" : ""}
               onClick={() => {
