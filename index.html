@@ -1000,25 +1000,21 @@
             { fps: 10, qrbox: { width: 220, height: 220 } },
            
 (decodedText) => {
-  try {
-    console.log("QR LIDO:", decodedText);
+  const dados = parsearDadosQR(decodedText);
 
-    const dados = parsearDadosQR(decodedText);
+  if (scannerInstanceRef.current) {
+    scannerInstanceRef.current
+      .stop()
+      .catch(() => {})
+      .finally(() => {
+        scannerInstanceRef.current = null;
 
-    console.log("DADOS QR:", dados);
+        setCameraAtiva(false);
 
-    aplicarBuscaESelecao(dados, aba);
-
-    setCameraAtiva(false);
-  } catch (erro) {
-    console.error("ERRO QR:", erro);
-
-    setAviso(
-      "Erro ao processar QR Code: " +
-      (erro?.message || erro)
-    );
-
-    setCameraAtiva(false);
+        setTimeout(() => {
+          aplicarBuscaESelecao(dados, aba);
+        }, 200);
+      });
   }
 }
 
